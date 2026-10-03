@@ -8,12 +8,13 @@
     "start": "node start.js",
     "dev": "node start.js",
     "install:all": "npm --prefix backend install && npm --prefix frontend install && npm install",
-    "build": "npm --prefix frontend run build",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
     "electron:dev": "node start.js & electron .",
     "electron:build:win": "npm run build && electron-builder --win",
     "electron:build:mac": "npm run build && electron-builder --mac",
     "electron:build:all": "npm run build && electron-builder --win --mac"
   },
+  "author": "Arther Studio Team",
   "build": {
     "appId": "com.arther.studio",
     "productName": "Arther Studio",
@@ -36,7 +37,7 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "frontend/public/icon.svg"
+      "icon": "build/icon.ico"
     },
     "mac": {
       "target": [
@@ -50,7 +51,7 @@
         }
       ],
       "category": "public.app-category.developer-tools",
-      "icon": "frontend/public/icon.svg"
+      "icon": "build/icon.png"
     }
   },
   "devDependencies": {

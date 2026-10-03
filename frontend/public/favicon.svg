@@ -1,13 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
-    <linearGradient id="favRing" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#d08a4c"/>
-      <stop offset="50%" stop-color="#6fb3a8"/>
-      <stop offset="100%" stop-color="#e8b07a"/>
+    <linearGradient id="favBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#140a28"/>
+      <stop offset="100%" stop-color="#05020a"/>
     </linearGradient>
+    <linearGradient id="favRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="50%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ff2d55"/>
+    </linearGradient>
+    <radialGradient id="favCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="35%" stop-color="#00f0ff"/>
+      <stop offset="70%" stop-color="#ff2d55"/>
+      <stop offset="100%" stop-color="#140a28"/>
+    </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="#0c1016"/>
-  <rect x="14" y="14" width="36" height="36" rx="11" fill="url(#favRing)"/>
-  <rect x="20" y="20" width="24" height="24" rx="7" fill="#0c1016"/>
-  <circle cx="32" cy="32" r="5" fill="#f3ead8"/>
+
+  <!-- Squircle Base -->
+  <rect width="64" height="64" rx="16" fill="url(#favBg)"/>
+  <rect width="62" height="62" x="1" y="1" rx="15" fill="none" stroke="rgba(255, 255, 255, 0.2)" stroke-width="1"/>
+
+  <!-- Orbital Halo Ring -->
+  <ellipse cx="32" cy="32" rx="24" ry="9" fill="none" stroke="url(#favRing)" stroke-width="1.8" transform="rotate(-30 32 32)"/>
+
+  <!-- Core Glowing Sphere -->
+  <circle cx="32" cy="32" r="14" fill="url(#favCore)"/>
+  <circle cx="32" cy="32" r="14" fill="none" stroke="rgba(255, 255, 255, 0.4)" stroke-width="0.8"/>
+
+  <!-- Hot Singularity Center -->
+  <circle cx="32" cy="32" r="4" fill="#ffffff"/>
+
+  <!-- Sparkle Satellite -->
+  <circle cx="48" cy="22" r="1.8" fill="#00f0ff"/>
+  <circle cx="16" cy="42" r="1.5" fill="#ff5376"/>
 </svg>
