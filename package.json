@@ -1,0 +1,60 @@
+{
+  "name": "arther-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Arther Studio - Intelligent Multi-Platform AI Coding Studio",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js",
+    "install:all": "npm --prefix backend install && npm --prefix frontend install && npm install",
+    "build": "npm --prefix frontend run build",
+    "electron:dev": "node start.js & electron .",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "electron:build:mac": "npm run build && electron-builder --mac",
+    "electron:build:all": "npm run build && electron-builder --win --mac"
+  },
+  "build": {
+    "appId": "com.arther.studio",
+    "productName": "Arther Studio",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "electron/**/*",
+      "backend/**/*",
+      "frontend/dist/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "frontend/public/icon.svg"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "frontend/public/icon.svg"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  }
+}

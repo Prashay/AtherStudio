@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#131920"/>
+      <stop offset="100%" stop-color="#0c1016"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d08a4c"/>
+      <stop offset="50%" stop-color="#6fb3a8"/>
+      <stop offset="100%" stop-color="#e8b07a"/>
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d08a4c" stop-opacity="0.35"/>
+      <stop offset="60%" stop-color="#6fb3a8" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0c1016" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8b07a"/>
+      <stop offset="100%" stop-color="#d08a4c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background App Tile with rounded corners -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  <rect width="510" height="510" x="1" y="1" rx="111" fill="none" stroke="rgba(232, 214, 180, 0.16)" stroke-width="2"/>
+
+  <!-- Radial Glow Behind Core -->
+  <circle cx="256" cy="256" r="190" fill="url(#glowGrad)"/>
+
+  <!-- Orbital Ellipse 1 -->
+  <ellipse cx="256" cy="256" rx="170" ry="68" fill="none" stroke="url(#ringGrad)" stroke-width="4.5" stroke-dasharray="14 8" transform="rotate(-30 256 256)" opacity="0.85"/>
+
+  <!-- Orbital Ellipse 2 -->
+  <ellipse cx="256" cy="256" rx="170" ry="68" fill="none" stroke="url(#ringGrad)" stroke-width="4.5" stroke-dasharray="14 8" transform="rotate(35 256 256)" opacity="0.5"/>
+
+  <!-- Central Orb Outer Ring -->
+  <rect x="176" y="176" width="160" height="160" rx="48" fill="url(#ringGrad)"/>
+
+  <!-- Central Orb Inner Cutout -->
+  <rect x="200" y="200" width="112" height="112" rx="32" fill="#0c1016"/>
+
+  <!-- Central Glowing Diamond Core -->
+  <circle cx="256" cy="256" r="26" fill="url(#coreGrad)"/>
+  <circle cx="256" cy="256" r="10" fill="#f3ead8"/>
+
+  <!-- Orbit Satellites -->
+  <circle cx="395" cy="180" r="11" fill="#6fb3a8"/>
+  <circle cx="115" cy="330" r="8" fill="#d08a4c"/>
+</svg>

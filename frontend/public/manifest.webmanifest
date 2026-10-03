@@ -1,0 +1,45 @@
+{
+  "name": "Aether Studio - AI Code Studio",
+  "short_name": "Aether Studio",
+  "description": "Local AI coding studio with file management, code editor, and multi-model assistant",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0c1016",
+  "theme_color": "#0c1016",
+  "lang": "en",
+  "categories": ["productivity", "developer tools", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agent Mode",
+      "short_name": "Agent",
+      "description": "Open Aether in autonomous agent mode",
+      "url": "/?mode=agent",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Editor Mode",
+      "short_name": "Editor",
+      "description": "Open Aether in focused code editor mode",
+      "url": "/?mode=editor",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    }
+  ]
+}
