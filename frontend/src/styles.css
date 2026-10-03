@@ -57,17 +57,15 @@ body {
 .mark-orb {
   width: 28px;
   height: 28px;
-  border-radius: 9px;
-  background:
-    conic-gradient(from 210deg, var(--copper), var(--sea), var(--copper-2), var(--copper));
+  border-radius: 8px;
+  background: url('/favicon.svg') center/contain no-repeat, radial-gradient(circle at 35% 35%, #00f0ff 0%, #a855f7 50%, #ff2d55 100%);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.45);
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
 }
 .mark-orb::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border-radius: 6px;
-  background: var(--ink);
+  display: none;
 }
 .mark h1 {
   font-size: 15px;
@@ -787,11 +785,13 @@ body {
   margin-bottom: 8px;
 }
 .vault-orb {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   flex-shrink: 0;
-  background: conic-gradient(from 120deg, var(--copper), var(--sea), var(--copper-2), var(--copper));
+  background: url('/icon.svg') center/contain no-repeat, radial-gradient(circle at 35% 35%, #00f0ff 0%, #a855f7 50%, #ff2d55 100%);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 .vault-actions {
   display: flex;

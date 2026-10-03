@@ -1,11 +1,27 @@
 const { app, BrowserWindow, shell, ipcMain } = require('electron')
 const path = require('path')
 const http = require('http')
+const fs = require('fs')
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 const DEV_URL = process.env.VITE_DEV_SERVER_URL || 'http://localhost:4576'
 let mainWindow = null
 let backendLoaded = false
+
+function getAppIcon() {
+  const candidates = [
+    path.join(__dirname, 'icon.ico'),
+    path.join(__dirname, 'icon.png'),
+    path.join(__dirname, '..', 'build', 'icon.ico'),
+    path.join(__dirname, '..', 'build', 'icon.png'),
+    path.join(__dirname, '..', 'frontend', 'public', 'icon.png'),
+    path.join(__dirname, '..', 'frontend', 'public', 'favicon.svg')
+  ]
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p
+  }
+  return undefined
+}
 
 // Helper: check if backend port 3090 is already alive
 function checkPortAlive(port, callback) {
@@ -38,12 +54,14 @@ function ensureBackend() {
 }
 
 function createWindow() {
+  const appIcon = getAppIcon()
   mainWindow = new BrowserWindow({
     width: 1320,
     height: 860,
     minWidth: 960,
     minHeight: 620,
     title: 'Arther Studio',
+    icon: appIcon,
     backgroundColor: '#0c1016',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 16, y: 16 },
