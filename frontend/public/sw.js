@@ -30,8 +30,16 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
-  // API calls and SSE streams must never be cached
-  if (url.pathname.startsWith('/api/')) {
+  // Dev server, Vite modules, and API calls must never be cached by service worker
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.port === '4576' ||
+    url.pathname.startsWith('/src/') ||
+    url.pathname.includes('@vite') ||
+    url.pathname.includes('node_modules')
+  ) {
     return
   }
 

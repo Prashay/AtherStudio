@@ -10,10 +10,12 @@ if (!fs.existsSync(BUILD_DIR)) fs.mkdirSync(BUILD_DIR, { recursive: true })
 if (!fs.existsSync(PUBLIC_DIR)) fs.mkdirSync(PUBLIC_DIR, { recursive: true })
 
 // 1. Copy generated high-res AI icon if available
-const SRC_ART = 'C:\\Users\\prashant jha\\.gemini\\antigravity-ide\\brain\\74fe9548-01cb-4c5e-be1d-fecf5d1fe39c\\arther_studio_icon_1791041025371.jpg'
+const SRC_ART = 'C:\\Users\\prashant jha\\.gemini\\antigravity-ide\\brain\\c1c53039-900b-46a4-9be3-2702fdc840c9\\ather_spark_core_1791091831953.jpg'
 if (fs.existsSync(SRC_ART)) {
   fs.copyFileSync(SRC_ART, path.join(BUILD_DIR, 'icon-preview.jpg'))
   fs.copyFileSync(SRC_ART, path.join(PUBLIC_DIR, 'icon-preview.jpg'))
+  fs.copyFileSync(SRC_ART, path.join(PUBLIC_DIR, 'favicon.png'))
+  fs.copyFileSync(SRC_ART, path.join(PUBLIC_DIR, 'icon.png'))
   console.log('✓ Copied HD icon preview to build and public directories')
 }
 
