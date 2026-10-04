@@ -373,8 +373,19 @@ export default function App() {
   const [copied, setCopied] = useState(false)
   const feedRef = useRef(null)
   const chatInputRef = useRef(null)
+  const [tokenGuideOpen, setTokenGuideOpen] = useState(false)
+  const [tokenGuideTab, setTokenGuideTab] = useState('gemini') // 'gemini' | 'openai'
+  const openTokenHelper = (provider = 'gemini') => {
+    setTokenGuideTab(provider === 'openai' ? 'openai' : 'gemini')
+    setTokenGuideOpen(true)
+  }
   const [userName, setUserName] = useState(() => localStorage.getItem(USER_KEY) || '')
-  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false)
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get('welcome') === 'true') return true
+    } catch {}
+    return false
+  })
   const [nameDraft, setNameDraft] = useState(() => localStorage.getItem(USER_KEY) || '')
   const [centerDraft, setCenterDraft] = useState('')
   const [capsulePickerOpen, setCapsulePickerOpen] = useState(false)
@@ -1205,19 +1216,86 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                       <span>{m.blurb}</span>
                     </button>
                   ))}
-                  <div className="picker-label">Google Gemini</div>
+                  <div className="picker-section-head">
+                    <span className="picker-label">Google Gemini</span>
+                    <button
+                      type="button"
+                      className="picker-info-tag"
+                      title="How to get free Gemini API key"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setPickerOpen(false)
+                        openTokenHelper('gemini')
+                      }}
+                    >
+                      <span className="info-i">ℹ</span>
+                      <span>How to get key</span>
+                    </button>
+                  </div>
                   {catalog.premium.filter((m) => m.provider === 'gemini').map((m) => (
-                    <button key={m.id} className={m.id === selected.id ? 'on' : ''} onClick={() => pickModel(m.id)}>
-                      <strong>{m.label}</strong>
-                      <span>{m.blurb}{vault.gemini ? ' · ready' : ' · token required'}</span>
-                    </button>
+                    <div key={m.id} className={`picker-row ${m.id === selected.id ? 'on' : ''}`}>
+                      <button
+                        type="button"
+                        className="picker-model-btn"
+                        onClick={() => pickModel(m.id)}
+                      >
+                        <strong>{m.label}</strong>
+                        <span>{m.blurb}{vault.gemini ? ' · ready' : ' · token required'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="picker-row-info-btn"
+                        title="View step-by-step instructions to get Gemini token"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPickerOpen(false)
+                          openTokenHelper('gemini')
+                        }}
+                      >
+                        ℹ
+                      </button>
+                    </div>
                   ))}
-                  <div className="picker-label">ChatGPT / OpenAI</div>
-                  {catalog.premium.filter((m) => m.provider === 'openai').map((m) => (
-                    <button key={m.id} className={m.id === selected.id ? 'on' : ''} onClick={() => pickModel(m.id)}>
-                      <strong>{m.label}</strong>
-                      <span>{m.blurb}{vault.openai ? ' · ready' : ' · token required'}</span>
+
+                  <div className="picker-section-head">
+                    <span className="picker-label">ChatGPT / OpenAI</span>
+                    <button
+                      type="button"
+                      className="picker-info-tag"
+                      title="How to get OpenAI API key"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setPickerOpen(false)
+                        openTokenHelper('openai')
+                      }}
+                    >
+                      <span className="info-i">ℹ</span>
+                      <span>How to get key</span>
                     </button>
+                  </div>
+                  {catalog.premium.filter((m) => m.provider === 'openai').map((m) => (
+                    <div key={m.id} className={`picker-row ${m.id === selected.id ? 'on' : ''}`}>
+                      <button
+                        type="button"
+                        className="picker-model-btn"
+                        onClick={() => pickModel(m.id)}
+                      >
+                        <strong>{m.label}</strong>
+                        <span>{m.blurb}{vault.openai ? ' · ready' : ' · token required'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="picker-row-info-btn"
+                        title="View step-by-step instructions to get OpenAI token"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setPickerOpen(false)
+                          openTokenHelper('openai')
+                        }}
+                      >
+                        ℹ
+                      </button>
+                    </div>
                   ))}
                 </div>
               </>
@@ -2122,6 +2200,100 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                               <span className="item-blurb">{m.blurb}</span>
                             </button>
                           ))}
+
+                          <div className="picker-section-title-row">
+                            <span className="picker-section-title">✨ Google Gemini</span>
+                            <button
+                              type="button"
+                              className="capsule-info-header-btn"
+                              onClick={() => {
+                                setCapsulePickerOpen(false)
+                                openTokenHelper('gemini')
+                              }}
+                              title="How to get free Gemini key"
+                            >
+                              ℹ Get Key
+                            </button>
+                          </div>
+                          {catalog.premium.filter((m) => m.provider === 'gemini').map((m) => (
+                            <div key={m.id} className={`capsule-picker-row ${m.id === selected.id ? 'active' : ''}`}>
+                              <button
+                                type="button"
+                                className="capsule-picker-item"
+                                onClick={() => {
+                                  pickModel(m.id)
+                                  setCapsulePickerOpen(false)
+                                }}
+                              >
+                                <div className="picker-item-main">
+                                  <span className="item-label">{m.label}</span>
+                                  <span className={`item-badge ${vault.gemini ? 'ready' : 'token'}`}>
+                                    {vault.gemini ? 'READY' : 'KEY REQ'}
+                                  </span>
+                                </div>
+                                <span className="item-blurb">{m.blurb}</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="capsule-row-info-btn"
+                                title="View step-by-step instructions to get Gemini token"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setCapsulePickerOpen(false)
+                                  openTokenHelper('gemini')
+                                }}
+                              >
+                                ℹ
+                              </button>
+                            </div>
+                          ))}
+
+                          <div className="picker-section-title-row">
+                            <span className="picker-section-title">🧠 ChatGPT / OpenAI</span>
+                            <button
+                              type="button"
+                              className="capsule-info-header-btn"
+                              onClick={() => {
+                                setCapsulePickerOpen(false)
+                                openTokenHelper('openai')
+                              }}
+                              title="How to get OpenAI key"
+                            >
+                              ℹ Get Key
+                            </button>
+                          </div>
+                          {catalog.premium.filter((m) => m.provider === 'openai').map((m) => (
+                            <div key={m.id} className={`capsule-picker-row ${m.id === selected.id ? 'active' : ''}`}>
+                              <button
+                                type="button"
+                                className="capsule-picker-item"
+                                onClick={() => {
+                                  pickModel(m.id)
+                                  setCapsulePickerOpen(false)
+                                }}
+                              >
+                                <div className="picker-item-main">
+                                  <span className="item-label">{m.label}</span>
+                                  <span className={`item-badge ${vault.openai ? 'ready' : 'token'}`}>
+                                    {vault.openai ? 'READY' : 'KEY REQ'}
+                                  </span>
+                                </div>
+                                <span className="item-blurb">{m.blurb}</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="capsule-row-info-btn"
+                                title="View step-by-step instructions to get OpenAI token"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setCapsulePickerOpen(false)
+                                  openTokenHelper('openai')
+                                }}
+                              >
+                                ℹ
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}
@@ -2731,6 +2903,15 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
       {vaultOpen && (
         <div className="modal-back" onClick={() => setVaultOpen(false)}>
           <div className="modal vault" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="settings-close-btn vault-close-btn"
+              onClick={() => setVaultOpen(false)}
+              title="Close"
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}
+            >
+              ✕
+            </button>
             <div className="sheet-handle" />
             <div className="vault-hero">
               <div className="vault-orb" />
@@ -2745,7 +2926,18 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
             </div>
             {vaultTab === 'openai' ? (
               <div className="field">
-                <label>OpenAI API token</label>
+                <div className="field-label-row">
+                  <label>OpenAI API token</label>
+                  <button
+                    type="button"
+                    className="vault-helper-btn"
+                    onClick={() => openTokenHelper('openai')}
+                    title="View step-by-step instructions to get an OpenAI key"
+                  >
+                    <span className="info-i">ℹ</span>
+                    <span>How to get ChatGPT token</span>
+                  </button>
+                </div>
                 <input
                   type="password"
                   value={vault.openai}
@@ -2756,7 +2948,18 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
               </div>
             ) : (
               <div className="field">
-                <label>Gemini API token</label>
+                <div className="field-label-row">
+                  <label>Gemini API token</label>
+                  <button
+                    type="button"
+                    className="vault-helper-btn"
+                    onClick={() => openTokenHelper('gemini')}
+                    title="View step-by-step instructions to get a Gemini key"
+                  >
+                    <span className="info-i">ℹ</span>
+                    <span>How to get Gemini token</span>
+                  </button>
+                </div>
                 <input
                   type="password"
                   value={vault.gemini}
@@ -2766,6 +2969,36 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                 <span className="hint">{vault.gemini ? 'Gemini linked' : 'Unlocks Gemini Flash and Pro'}</span>
               </div>
             )}
+
+            {/* Quick Helper Banner */}
+            <div className="vault-quick-helper">
+              <div className="quick-helper-text">
+                <span className="helper-badge">{vaultTab === 'gemini' ? '100% FREE' : 'DIRECT KEY'}</span>
+                <span>
+                  {vaultTab === 'gemini'
+                    ? 'Get your free key with 0 setup cost from Google AI Studio.'
+                    : 'Create your developer API secret key in OpenAI platform.'}
+                </span>
+              </div>
+              <div className="quick-helper-btns">
+                <a
+                  href={vaultTab === 'gemini' ? 'https://aistudio.google.com/apikey' : 'https://platform.openai.com/api-keys'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="quick-ext-link"
+                >
+                  <span>{vaultTab === 'gemini' ? 'Open Google AI Studio' : 'Open OpenAI Platform'}</span>
+                  <span>↗</span>
+                </a>
+                <button
+                  type="button"
+                  className="quick-steps-btn"
+                  onClick={() => openTokenHelper(vaultTab)}
+                >
+                  ℹ View Steps
+                </button>
+              </div>
+            </div>
             <div className="field" style={{ marginTop: 12 }}>
               <label>Web / CORS Proxy URL (Optional)</label>
               <input
@@ -3048,7 +3281,6 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                     value={nameDraft}
                     onChange={(e) => setNameDraft(e.target.value)}
                     placeholder="Enter your name (optional)"
-                    autoFocus
                   />
                   {nameDraft && (
                     <button
@@ -3210,6 +3442,21 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                   className="mobile-menu-item"
                   onClick={() => {
                     setMobileMenuOpen(false)
+                    openTokenHelper('gemini')
+                  }}
+                >
+                  <div className="menu-item-icon">ℹ️</div>
+                  <div className="menu-item-text">
+                    <strong>Get API Tokens Guide</strong>
+                    <span>Step-by-step helper for Gemini &amp; ChatGPT</span>
+                  </div>
+                  <div className="menu-item-arrow">→</div>
+                </button>
+
+                <button
+                  className="mobile-menu-item"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
                     setAppModalOpen(true)
                   }}
                 >
@@ -3290,6 +3537,205 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
           onClearHistory={handleClearAllHistory}
           onExportSession={handleExportSession}
         />
+      )}
+
+      {tokenGuideOpen && (
+        <div className="modal-back token-guide-back" onClick={() => setTokenGuideOpen(false)}>
+          <div className="modal token-guide-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="settings-close-btn guide-close-btn"
+              onClick={() => setTokenGuideOpen(false)}
+              title="Close guide"
+              style={{ position: 'absolute', top: 14, right: 14, zIndex: 10 }}
+            >
+              ✕
+            </button>
+            <div className="sheet-handle" />
+
+            <div className="token-guide-hero">
+              <div className="token-guide-badge">
+                <span className="guide-sparkle">✦</span>
+                <span>API Token Generator Helper</span>
+              </div>
+              <h3>How to Generate API Tokens</h3>
+              <p>Quick steps to get your token and unlock Google Gemini and ChatGPT models.</p>
+            </div>
+
+            <div className="token-guide-seg">
+              <button
+                type="button"
+                className={`guide-seg-btn ${tokenGuideTab === 'gemini' ? 'on' : ''}`}
+                onClick={() => setTokenGuideTab('gemini')}
+              >
+                <span className="seg-ico">✨</span>
+                <span>Google Gemini</span>
+                <span className="seg-tag free">100% Free</span>
+              </button>
+              <button
+                type="button"
+                className={`guide-seg-btn ${tokenGuideTab === 'openai' ? 'on' : ''}`}
+                onClick={() => setTokenGuideTab('openai')}
+              >
+                <span className="seg-ico">⚡</span>
+                <span>ChatGPT / OpenAI</span>
+                <span className="seg-tag">Direct API</span>
+              </button>
+            </div>
+
+            <div className="token-guide-body">
+              {tokenGuideTab === 'gemini' ? (
+                <div className="guide-flow">
+                  <div className="guide-banner gemini">
+                    <span className="banner-ico">🎁</span>
+                    <div className="banner-text">
+                      <strong>Zero Cost / 100% Free Tier:</strong> Google AI Studio provides high free rate limits for Gemini 2.0 Flash &amp; Pro without requiring a credit card or billing setup!
+                    </div>
+                  </div>
+
+                  <div className="guide-steps">
+                    <div className="guide-step">
+                      <div className="step-badge">1</div>
+                      <div className="step-content">
+                        <strong>Open Google AI Studio</strong>
+                        <p>Go to the official Google AI Studio API key generator.</p>
+                        <a
+                          href="https://aistudio.google.com/apikey"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="guide-link-btn"
+                        >
+                          <span>Open Google AI Studio</span>
+                          <span className="arrow">↗</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">2</div>
+                      <div className="step-content">
+                        <strong>Sign In with your Google Account</strong>
+                        <p>Log in with any standard Gmail or Google Workspace account.</p>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">3</div>
+                      <div className="step-content">
+                        <strong>Click "Create API key"</strong>
+                        <p>Click the blue <strong>"Create API key"</strong> button, then select <em>"Create key in new project"</em> (or pick an existing project).</p>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">4</div>
+                      <div className="step-content">
+                        <strong>Copy Your Generated Key</strong>
+                        <p>Click the copy button. Gemini API keys always start with <code>AIzaSy...</code></p>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">5</div>
+                      <div className="step-content">
+                        <strong>Paste into Aether Studio &amp; Save</strong>
+                        <p>Paste the copied key into the Gemini field in the Token Vault.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="guide-modal-actions">
+                    <button
+                      type="button"
+                      className="primary guide-action-btn gemini"
+                      onClick={() => {
+                        setTokenGuideOpen(false)
+                        setVaultTab('gemini')
+                        setVaultOpen(true)
+                      }}
+                    >
+                      Paste Key in Token Vault →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="guide-flow">
+                  <div className="guide-banner openai">
+                    <span className="banner-ico">⚡</span>
+                    <div className="banner-text">
+                      <strong>Direct OpenAI Developer API:</strong> Use your OpenAI developer account to unlock GPT-4o, GPT-4o mini, and o3-mini reasoning models.
+                    </div>
+                  </div>
+
+                  <div className="guide-steps">
+                    <div className="guide-step">
+                      <div className="step-badge">1</div>
+                      <div className="step-content">
+                        <strong>Visit OpenAI API Keys Dashboard</strong>
+                        <p>Open the official API Key management page on OpenAI Platform.</p>
+                        <a
+                          href="https://platform.openai.com/api-keys"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="guide-link-btn openai"
+                        >
+                          <span>Open OpenAI Platform</span>
+                          <span className="arrow">↗</span>
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">2</div>
+                      <div className="step-content">
+                        <strong>Sign In or Register</strong>
+                        <p>Log into your OpenAI account (the same credentials used for ChatGPT).</p>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">3</div>
+                      <div className="step-content">
+                        <strong>Click "Create new secret key"</strong>
+                        <p>Click <strong>"+ Create new secret key"</strong>. Give it a name like <code>Aether Studio</code> and choose default permissions.</p>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">4</div>
+                      <div className="step-content">
+                        <strong>Copy the Secret Key Immediately</strong>
+                        <p>Copy the secret key string (starts with <code>sk-proj-...</code> or <code>sk-...</code>). <em>OpenAI will never show it again.</em></p>
+                      </div>
+                    </div>
+
+                    <div className="guide-step">
+                      <div className="step-badge">5</div>
+                      <div className="step-content">
+                        <strong>Paste into Aether Studio &amp; Save</strong>
+                        <p>Paste the copied key into the ChatGPT field in the Token Vault.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="guide-modal-actions">
+                    <button
+                      type="button"
+                      className="primary guide-action-btn openai"
+                      onClick={() => {
+                        setTokenGuideOpen(false)
+                        setVaultTab('openai')
+                        setVaultOpen(true)
+                      }}
+                    >
+                      Paste Key in Token Vault →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
