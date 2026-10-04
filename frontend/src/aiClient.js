@@ -24,6 +24,14 @@ function stripTools(text) {
   return String(text || '').replace(/<tool\s+name="[a-z_]+">[\s\S]*?<\/tool>/gi, '').trim()
 }
 
+function sanitizeError(msg) {
+  if (!msg) return 'AI request failed'
+  return String(msg)
+    .replace(/sk-[A-Za-z0-9_-]{20,}/g, 'sk-***[REDACTED]***')
+    .replace(/key=[A-Za-z0-9_-]{20,}/g, 'key=***[REDACTED]***')
+    .replace(/AIza[0-9A-Za-z-_]{35}/g, 'AIza***[REDACTED]***')
+}
+
 async function runLocalTool(dirHandle, name, args) {
   if (!dirHandle) return 'No project directory opened'
   try {
@@ -156,10 +164,17 @@ export async function executeChat({
       }),
       signal: controller.signal
     })
-    clearTimeout(tId)
+    if (!res.ok) {
+      let errData = {}
+      try { errData = await res.json() } catch {}
+      const safeErr = sanitizeError(errData?.error || `Request failed with HTTP ${res.status}`)
+      onEvent('error', { error: safeErr, provider: model.provider, model: model.id })
+      onEvent('agent.error', { error: safeErr, provider: model.provider, model: model.id })
+      return
+    }
 
     const ctype = res.headers.get('content-type') || ''
-    if (res.ok && ctype.includes('text/event-stream')) {
+    if (ctype.includes('text/event-stream')) {
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buf = ''
@@ -184,8 +199,12 @@ export async function executeChat({
       }
       return
     }
-  } catch {
-    // Backend unavailable or running standalone in web app - fall back to Direct Web Mode
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      onEvent('error', { error: 'Request timed out after 45 seconds.' })
+      return
+    }
+    // Only fall back to Direct Web Mode if backend connection completely failed (e.g. static web hosting)
   }
 
   // 2. Direct Web Mode (Zero backend dependency)
@@ -228,11 +247,13 @@ export async function executeChat({
   }
 
   if (model.provider === 'gemini') {
-    if (!token) throw new Error('Gemini API key is required. Get one free at aistudio.google.com with no credit card required.')
+    if (!token || !String(token).trim()) {
+      throw new Error('Gemini API key is not configured. Get a free key at aistudio.google.com with zero credit card required, then paste it in Settings (Ctrl+,) or the Token Vault.')
+    }
     let m = model.remote || 'gemini-2.0-flash'
     if (m.includes('thinking-exp')) m = 'gemini-2.0-flash'
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(token)}`
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(token.trim())}`
     const intro = `${TOOLS_XML_PROMPT(mode, dirHandle?.name)}${context ? `\n\nEditor Context:\n${context}` : ''}`
 
     const abortCtrl = new AbortController()
@@ -249,7 +270,9 @@ export async function executeChat({
       })
 
       const json = await resp.json()
-      if (!resp.ok) throw new Error(json.error?.message || `Gemini Error ${resp.status}`)
+      if (!resp.ok) {
+        throw new Error(sanitizeError(json.error?.message || `Gemini Error HTTP ${resp.status}`))
+      }
       const text = json.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || ''
       const clean = stripTools(text) || text
       onEvent('message', { text: clean || 'Gemini completed with no text.' })
@@ -261,7 +284,9 @@ export async function executeChat({
   }
 
   if (model.provider === 'openai') {
-    if (!token) throw new Error('OpenAI API key is required.')
+    if (!token || !String(token).trim()) {
+      throw new Error('OpenAI API key is not configured. Please add your OpenAI token in Settings (Ctrl+,) or the Token Vault.')
+    }
     const endpoint = proxyUrl ? `${proxyUrl.replace(/\/$/, '')}/https://api.openai.com/v1/chat/completions` : 'https://api.openai.com/v1/chat/completions'
     const remoteModel = model.remote || 'gpt-4o-mini'
     const isReasoning = remoteModel.startsWith('o1') || remoteModel.startsWith('o3')
@@ -284,7 +309,7 @@ export async function executeChat({
       const resp = await fetch(endpoint, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token.trim()}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(reqBody),
@@ -292,7 +317,9 @@ export async function executeChat({
       })
 
       const json = await resp.json()
-      if (!resp.ok) throw new Error(json.error?.message || `OpenAI Error ${resp.status}`)
+      if (!resp.ok) {
+        throw new Error(sanitizeError(json.error?.message || `OpenAI Error HTTP ${resp.status}`))
+      }
       const text = json.choices?.[0]?.message?.content || ''
       const clean = stripTools(text) || text
       onEvent('message', { text: clean || 'OpenAI completed with no text.' })
@@ -302,7 +329,7 @@ export async function executeChat({
       if (err.name === 'TypeError' && !proxyUrl) {
         throw new Error('Direct browser requests to OpenAI are blocked by browser CORS policy. Please enter a Web/CORS Proxy URL in Settings ⚙️ or switch to Google Gemini (which works directly in browsers).')
       }
-      throw err
+      throw new Error(sanitizeError(err.message))
     } finally {
       clearTimeout(timer)
     }

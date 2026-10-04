@@ -1,10 +1,10 @@
 const CACHE_NAME = 'aether-v1'
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icon.svg',
-  '/favicon.svg'
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon.svg',
+  './favicon.svg'
 ]
 
 self.addEventListener('install', (event) => {

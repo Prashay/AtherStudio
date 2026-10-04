@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { QRCodeSVG } from './qrcode.jsx'
+import { QRCodeSVG, downloadQRCodePNG } from './qrcode.jsx'
 import {
   isNativeFSSupported,
   pickNativeDirectory,
@@ -33,21 +33,171 @@ function saveVault(c) {
 
 const DEFAULT_MODELS = {
   free: [
-    { id: 'aether-spark', label: 'Aether Spark', blurb: 'Fast replies', tier: 'free', provider: 'pollinations', remote: 'openai-fast' },
-    { id: 'aether-loom', label: 'Aether Loom', blurb: 'Balanced chat', tier: 'free', provider: 'pollinations', remote: 'openai-fast' },
-    { id: 'aether-forge', label: 'Aether Forge', blurb: 'Code-focused', tier: 'free', provider: 'pollinations', remote: 'openai-fast' }
+    {
+      id: 'aether-spark',
+      label: 'Aether Spark',
+      blurb: 'Fast replies',
+      tier: 'free',
+      provider: 'pollinations',
+      remote: 'openai-fast',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: false,
+        structuredOutput: true,
+        longContext: false,
+        reasoning: false
+      }
+    },
+    {
+      id: 'aether-loom',
+      label: 'Aether Loom',
+      blurb: 'Balanced chat',
+      tier: 'free',
+      provider: 'pollinations',
+      remote: 'openai-fast',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: false,
+        structuredOutput: true,
+        longContext: false,
+        reasoning: false
+      }
+    },
+    {
+      id: 'aether-forge',
+      label: 'Aether Forge',
+      blurb: 'Code-focused',
+      tier: 'free',
+      provider: 'pollinations',
+      remote: 'openai-fast',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: false,
+        structuredOutput: true,
+        longContext: false,
+        reasoning: false
+      }
+    }
   ],
   premium: [
     // --- Google Gemini ---
-    { id: 'gemini-3.5-flash-lite', label: '3.5 Flash-Lite', blurb: 'Fastest answers', tier: 'premium', provider: 'gemini', remote: 'gemini-2.0-flash-lite' },
-    { id: 'gemini-3.6-flash', label: '3.6 Flash', blurb: 'All-around help', tier: 'premium', provider: 'gemini', remote: 'gemini-2.0-flash' },
-    { id: 'gemini-3.1-pro', label: '3.1 Pro', blurb: 'Advanced reasoning', tier: 'premium', provider: 'gemini', remote: 'gemini-1.5-pro' },
-    { id: 'gemini-thinking', label: 'Extended thinking', blurb: 'Complex problem solving', tier: 'premium', provider: 'gemini', remote: 'gemini-2.0-flash' },
+    {
+      id: 'gemini-3.5-flash-lite',
+      label: '3.5 Flash-Lite',
+      blurb: 'Fastest answers',
+      tier: 'premium',
+      provider: 'gemini',
+      remote: 'gemini-2.0-flash-lite',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: false
+      }
+    },
+    {
+      id: 'gemini-3.6-flash',
+      label: '3.6 Flash',
+      blurb: 'All-around help',
+      tier: 'premium',
+      provider: 'gemini',
+      remote: 'gemini-2.0-flash',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: false
+      }
+    },
+    {
+      id: 'gemini-3.1-pro',
+      label: '3.1 Pro',
+      blurb: 'Advanced reasoning',
+      tier: 'premium',
+      provider: 'gemini',
+      remote: 'gemini-1.5-pro',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: false
+      }
+    },
+    {
+      id: 'gemini-thinking',
+      label: 'Extended thinking',
+      blurb: 'Complex problem solving',
+      tier: 'premium',
+      provider: 'gemini',
+      remote: 'gemini-2.0-flash',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: true
+      }
+    },
 
     // --- OpenAI / ChatGPT ---
-    { id: 'gpt-4o-mini', label: 'GPT-4o mini', blurb: 'ChatGPT speed', tier: 'premium', provider: 'openai', remote: 'gpt-4o-mini' },
-    { id: 'gpt-4o', label: 'GPT-4o', blurb: 'ChatGPT flagship', tier: 'premium', provider: 'openai', remote: 'gpt-4o' },
-    { id: 'gpt-think', label: 'Think (o3-mini)', blurb: 'Think: Get a smarter answer', tier: 'premium', provider: 'openai', remote: 'o3-mini' }
+    {
+      id: 'gpt-4o-mini',
+      label: 'GPT-4o mini',
+      blurb: 'ChatGPT speed',
+      tier: 'premium',
+      provider: 'openai',
+      remote: 'gpt-4o-mini',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: false
+      }
+    },
+    {
+      id: 'gpt-4o',
+      label: 'GPT-4o',
+      blurb: 'ChatGPT flagship',
+      tier: 'premium',
+      provider: 'openai',
+      remote: 'gpt-4o',
+      capabilities: {
+        streaming: true,
+        toolCalling: true,
+        vision: true,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: false
+      }
+    },
+    {
+      id: 'gpt-think',
+      label: 'Think (o3-mini)',
+      blurb: 'Think: Get a smarter answer',
+      tier: 'premium',
+      provider: 'openai',
+      remote: 'o3-mini',
+      capabilities: {
+        streaming: true,
+        toolCalling: false,
+        vision: false,
+        structuredOutput: true,
+        longContext: true,
+        reasoning: true
+      }
+    }
   ]
 }
 
@@ -367,10 +517,73 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [installed, setInstalled] = useState(false)
-  const [appModalOpen, setAppModalOpen] = useState(false)
+  const [appModalOpen, setAppModalOpen] = useState(() => {
+    try {
+      const p = new URLSearchParams(window.location.search)
+      return p.get('download') === '1' || p.get('install') === '1' || p.get('app') === '1'
+    } catch {
+      return false
+    }
+  })
   const [guideTab, setGuideTab] = useState('phone')
+  const [qrMode, setQrMode] = useState('auto') // 'auto' | 'local' | 'cloud'
+  const [qrDownloaded, setQrDownloaded] = useState(false)
   const [networkInfo, setNetworkInfo] = useState({ addresses: [], port: 4576 })
   const [copied, setCopied] = useState(false)
+
+  const isMobileClient = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
+  }, [])
+
+  const isIOSClient = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  }, [])
+
+  const isAndroidClient = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    return /Android/i.test(navigator.userAgent)
+  }, [])
+
+  const targetQrUrl = useMemo(() => {
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    if (!isLocalHost) {
+      const origin = window.location.origin
+      const cleanPath = window.location.pathname.replace(/\/+$/, '')
+      return `${origin}${cleanPath}/?download=1`
+    }
+    if (qrMode === 'cloud') {
+      return 'https://prashay.github.io/AtherStudio/?download=1'
+    }
+    const host = networkInfo.addresses?.[0]?.ip || window.location.hostname
+    const port = window.location.port || networkInfo.port || '4576'
+    return `${window.location.protocol}//${host}:${port}/?download=1`
+  }, [networkInfo, qrMode])
+
+  const handleDownloadQR = () => {
+    const ok = downloadQRCodePNG(targetQrUrl, 'aether-studio-qr.png')
+    if (ok) {
+      setQrDownloaded(true)
+      setTimeout(() => setQrDownloaded(false), 2500)
+    }
+  }
+
+  const handleDownloadShortcut = () => {
+    try {
+      const content = `[InternetShortcut]\nURL=${targetQrUrl}\n`
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'AetherStudio.url'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const feedRef = useRef(null)
   const chatInputRef = useRef(null)
   const [tokenGuideOpen, setTokenGuideOpen] = useState(false)
@@ -2574,20 +2787,33 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                         📄 Export .json
                       </button>
                       {selected.tier !== 'free' && (
-                        <button
-                          type="button"
-                          className="err-btn"
-                          onClick={() => {
-                            pickModel('aether-spark')
-                            const lastUser = [...messages.slice(0, i + 1)].reverse().find((msg) => msg.role === 'user')
-                            if (lastUser?.text) {
-                              setTimeout(() => send(lastUser.text), 100)
-                            }
-                          }}
-                          title="Switch to free Aether Spark model"
-                        >
-                          ⚡ Use Free Model
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="err-btn primary-err"
+                            onClick={() => {
+                              setVaultTab(selected.provider === 'gemini' ? 'gemini' : 'openai')
+                              setVaultOpen(true)
+                            }}
+                            title={`Configure ${selected.provider === 'gemini' ? 'Gemini' : 'OpenAI'} API token`}
+                          >
+                            🔑 Configure {selected.provider === 'gemini' ? 'Gemini' : 'OpenAI'}
+                          </button>
+                          <button
+                            type="button"
+                            className="err-btn"
+                            onClick={() => {
+                              pickModel('aether-spark')
+                              const lastUser = [...messages.slice(0, i + 1)].reverse().find((msg) => msg.role === 'user')
+                              if (lastUser?.text) {
+                                setTimeout(() => send(lastUser.text), 100)
+                              }
+                            }}
+                            title="Switch to free Aether Spark model"
+                          >
+                            ⚡ Use Free Model
+                          </button>
+                        </>
                       )}
                       <button
                         type="button"
@@ -2921,13 +3147,22 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
               </div>
             </div>
             <div className="seg">
-              <button className={vaultTab === 'openai' ? 'on' : ''} onClick={() => setVaultTab('openai')}>ChatGPT</button>
-              <button className={vaultTab === 'gemini' ? 'on' : ''} onClick={() => setVaultTab('gemini')}>Gemini</button>
+              <button className={vaultTab === 'openai' ? 'on' : ''} onClick={() => setVaultTab('openai')}>
+                OpenAI / ChatGPT {vault.openai ? '✓' : ''}
+              </button>
+              <button className={vaultTab === 'gemini' ? 'on' : ''} onClick={() => setVaultTab('gemini')}>
+                Google Gemini {vault.gemini ? '✓' : ''}
+              </button>
             </div>
             {vaultTab === 'openai' ? (
               <div className="field">
                 <div className="field-label-row">
-                  <label>OpenAI API token</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <label>OpenAI API Key</label>
+                    <span className={`vault-status-pill ${vault.openai ? 'configured' : 'empty'}`}>
+                      {vault.openai ? 'Configured ✓' : 'Not configured'}
+                    </span>
+                  </div>
                   <button
                     type="button"
                     className="vault-helper-btn"
@@ -2935,21 +3170,28 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                     title="View step-by-step instructions to get an OpenAI key"
                   >
                     <span className="info-i">ℹ</span>
-                    <span>How to get ChatGPT token</span>
+                    <span>How to get key</span>
                   </button>
                 </div>
                 <input
                   type="password"
                   value={vault.openai}
                   onChange={(e) => persistVault({ ...vault, openai: e.target.value })}
-                  placeholder="sk-..."
+                  placeholder="sk-proj-..."
+                  autoComplete="off"
+                  spellCheck="false"
                 />
-                <span className="hint">{vault.openai ? 'ChatGPT linked' : 'Unlocks GPT-4o mini and GPT-4o'}</span>
+                <span className="hint">{vault.openai ? 'OpenAI key configured securely · unlocks GPT-4o mini, GPT-4o, and o3-mini' : 'Never logged or exposed · unlocks GPT-4o and o3-mini'}</span>
               </div>
             ) : (
               <div className="field">
                 <div className="field-label-row">
-                  <label>Gemini API token</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <label>Gemini API Key</label>
+                    <span className={`vault-status-pill ${vault.gemini ? 'configured' : 'empty'}`}>
+                      {vault.gemini ? 'Configured ✓' : 'Not configured'}
+                    </span>
+                  </div>
                   <button
                     type="button"
                     className="vault-helper-btn"
@@ -2957,16 +3199,18 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                     title="View step-by-step instructions to get a Gemini key"
                   >
                     <span className="info-i">ℹ</span>
-                    <span>How to get Gemini token</span>
+                    <span>How to get key</span>
                   </button>
                 </div>
                 <input
                   type="password"
                   value={vault.gemini}
                   onChange={(e) => persistVault({ ...vault, gemini: e.target.value })}
-                  placeholder="AIza..."
+                  placeholder="AIzaSy..."
+                  autoComplete="off"
+                  spellCheck="false"
                 />
-                <span className="hint">{vault.gemini ? 'Gemini linked' : 'Unlocks Gemini Flash and Pro'}</span>
+                <span className="hint">{vault.gemini ? 'Gemini key configured securely · unlocks Gemini 3.5, 3.6 Flash, and 3.1 Pro' : '100% free with no credit card required · unlocks Gemini Flash and Pro'}</span>
               </div>
             )}
 
@@ -3102,66 +3346,158 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
 
             {guideTab === 'phone' && (
               <div>
-                <div className="qr-container">
-                  <QRCodeSVG
-                    text={
-                      window.location.protocol +
-                      '//' +
-                      (networkInfo.addresses?.[0]?.ip || window.location.hostname) +
-                      ':' +
-                      (networkInfo.port || window.location.port || '4576')
-                    }
-                    size={160}
-                  />
-                  <div className="url-pill">
-                    <span>
-                      {window.location.protocol}//
-                      {networkInfo.addresses?.[0]?.ip || window.location.hostname}:
-                      {networkInfo.port || window.location.port || '4576'}
-                    </span>
-                    <button
-                      className="ghost tiny"
-                      onClick={() => {
-                        const url = `${window.location.protocol}//${
-                          networkInfo.addresses?.[0]?.ip || window.location.hostname
-                        }:${networkInfo.port || window.location.port || '4576'}`
-                        navigator.clipboard?.writeText(url)
-                        setCopied(true)
-                        setTimeout(() => setCopied(false), 2000)
-                      }}
-                    >
-                      {copied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                  <span className="hint">Make sure phone and computer are on the same Wi-Fi</span>
-                </div>
+                {isMobileClient ? (
+                  <div className="mobile-download-hub">
+                    <div className="mobile-device-badge">
+                      <span>{isIOSClient ? '🍎 iOS Device' : isAndroidClient ? '🤖 Android Device' : '📱 Mobile Device'}</span>
+                      <span className="badge-highlight">Direct Download &amp; Install Hub</span>
+                    </div>
 
-                <div className="step-item">
-                  <div className="step-num">1</div>
-                  <div>
-                    <strong>Scan QR or open link</strong>
-                    <div className="hint">Use your phone camera to scan the QR code above or enter the link in Safari/Chrome.</div>
-                  </div>
-                </div>
+                    {installPrompt && !installed ? (
+                      <div className="mobile-direct-install-box">
+                        <button className="primary mobile-install-big-btn" onClick={triggerInstall}>
+                          ⬇️ Install Aether Studio App
+                        </button>
+                        <span className="hint">Direct 1-tap installation to your home screen</span>
+                      </div>
+                    ) : (
+                      <div className="mobile-pwa-guide-box">
+                        <h4>📱 Add Aether to Home Screen</h4>
+                        <p className="hint">Run full-screen without browser address bars, with offline AI code editor!</p>
+                      </div>
+                    )}
 
-                <div className="step-item">
-                  <div className="step-num">2</div>
-                  <div>
-                    <strong>Add to Home Screen (Instant App)</strong>
-                    <div className="hint">
-                      • <b>iPhone (Safari)</b>: Tap Share button ⎋ → <b>Add to Home Screen</b>.<br />
-                      • <b>Android (Chrome)</b>: Tap ⋮ menu → <b>Install app</b> or <b>Add to Home screen</b>.
+                    <div className="step-item">
+                      <div className="step-num">1</div>
+                      <div>
+                        <strong>{isIOSClient ? 'Safari Share Menu' : 'Browser Menu'}</strong>
+                        <div className="hint">
+                          {isIOSClient ? (
+                            <>Tap the <b>Share button ⎋</b> (square with arrow up) at the bottom of Safari.</>
+                          ) : (
+                            <>Tap the <b>three dots menu ⋮</b> in the top right of Chrome.</>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="step-item">
+                      <div className="step-num">2</div>
+                      <div>
+                        <strong>{isIOSClient ? 'Add to Home Screen' : 'Install App'}</strong>
+                        <div className="hint">
+                          {isIOSClient ? (
+                            <>Scroll down and tap <b>Add to Home Screen ⊞</b>, then tap <b>Add</b> in the top right.</>
+                          ) : (
+                            <>Tap <b>Install app</b> or <b>Add to Home screen</b> and confirm <b>Install</b>.</>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="step-item">
+                      <div className="step-num">3</div>
+                      <div>
+                        <strong>Instant Fullscreen Launch</strong>
+                        <div className="hint">
+                          Aether icon is now on your home screen! Tap it anytime for full-screen coding with touch editor and AI assistant.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mobile-actions-row">
+                      <button className="primary" onClick={() => setAppModalOpen(false)}>
+                        🚀 Launch Web Studio Now
+                      </button>
+                      <button className="ghost small" onClick={handleDownloadShortcut}>
+                        ⬇️ Download Web Shortcut
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                <div className="step-item">
-                  <div className="step-num">3</div>
+                ) : (
                   <div>
-                    <strong>Full Native Mobile Studio</strong>
-                    <div className="hint">Aether launches full-screen without browser address bars, complete with mobile file drawer, touch code editor, and AI chat!</div>
+                    {window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? (
+                      <div className="qr-source-toggle">
+                        <button
+                          className={qrMode !== 'cloud' ? 'on' : ''}
+                          onClick={() => setQrMode('local')}
+                        >
+                          📱 Local Wi-Fi (LAN)
+                        </button>
+                        <button
+                          className={qrMode === 'cloud' ? 'on' : ''}
+                          onClick={() => setQrMode('cloud')}
+                        >
+                          🌐 Cloud Web App
+                        </button>
+                      </div>
+                    ) : null}
+
+                    <div className="qr-container">
+                      <QRCodeSVG text={targetQrUrl} size={170} />
+                      <div className="url-pill">
+                        <span title={targetQrUrl}>{targetQrUrl}</span>
+                        <button
+                          className="ghost tiny"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(targetQrUrl)
+                            setCopied(true)
+                            setTimeout(() => setCopied(false), 2000)
+                          }}
+                        >
+                          {copied ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+
+                      <div className="qr-actions-row">
+                        <button className="ghost tiny" onClick={handleDownloadQR}>
+                          {qrDownloaded ? '✓ QR Saved!' : '⬇️ Download QR (PNG)'}
+                        </button>
+                        <button className="ghost tiny" onClick={handleDownloadShortcut}>
+                          ⬇️ Download Shortcut
+                        </button>
+                        <button className="ghost tiny" onClick={() => window.open(targetQrUrl, '_blank')}>
+                          🔗 Open Mobile Link
+                        </button>
+                      </div>
+
+                      <span className="hint">
+                        {window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+                          ? 'Scan with any phone camera (works anywhere worldwide on 4G/5G/Wi-Fi — opens instant download options)'
+                          : qrMode === 'cloud'
+                          ? 'Scan to open the public cloud app on any phone'
+                          : 'Make sure phone and computer are on the same Wi-Fi'}
+                      </span>
+                    </div>
+
+                    <div className="step-item">
+                      <div className="step-num">1</div>
+                      <div>
+                        <strong>Scan QR or open download link</strong>
+                        <div className="hint">Use your phone camera to scan the QR code above or open the link in mobile Safari/Chrome.</div>
+                      </div>
+                    </div>
+
+                    <div className="step-item">
+                      <div className="step-num">2</div>
+                      <div>
+                        <strong>Choose Download &amp; Add to Home Screen</strong>
+                        <div className="hint">
+                          • <b>iPhone (Safari)</b>: Tap Share button ⎋ → <b>Add to Home Screen</b>.<br />
+                          • <b>Android (Chrome)</b>: Tap ⋮ menu → <b>Install app</b> or <b>Add to Home screen</b>.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="step-item">
+                      <div className="step-num">3</div>
+                      <div>
+                        <strong>Full Native Mobile Studio</strong>
+                        <div className="hint">Aether launches full-screen without browser address bars, complete with mobile file drawer, touch code editor, and AI chat!</div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

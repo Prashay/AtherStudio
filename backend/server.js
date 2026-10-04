@@ -3,6 +3,9 @@ const cors = require('cors')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const toolRegistry = require('./adapters/toolRegistry')
+const { runOpenAIAgent } = require('./adapters/openaiAdapter')
+const { runGeminiAgent } = require('./adapters/geminiAdapter')
 const app = express()
 const PORT = process.env.PORT || 3090
 const HOME = process.env.HOME || os.homedir() || '/root'
@@ -116,22 +119,172 @@ function collectFiles(dir, acc) {
 }
 
 const FREE_MODELS = [
-  { id: 'aether-spark', label: 'Aether Spark', blurb: 'Fast replies', tier: 'free', provider: 'pollinations', remote: 'openai-fast' },
-  { id: 'aether-loom', label: 'Aether Loom', blurb: 'Balanced chat', tier: 'free', provider: 'pollinations', remote: 'openai-fast' },
-  { id: 'aether-forge', label: 'Aether Forge', blurb: 'Code-focused', tier: 'free', provider: 'pollinations', remote: 'openai-fast' }
+  {
+    id: 'aether-spark',
+    label: 'Aether Spark',
+    blurb: 'Fast replies',
+    tier: 'free',
+    provider: 'pollinations',
+    remote: 'openai-fast',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: false,
+      structuredOutput: true,
+      longContext: false,
+      reasoning: false
+    }
+  },
+  {
+    id: 'aether-loom',
+    label: 'Aether Loom',
+    blurb: 'Balanced chat',
+    tier: 'free',
+    provider: 'pollinations',
+    remote: 'openai-fast',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: false,
+      structuredOutput: true,
+      longContext: false,
+      reasoning: false
+    }
+  },
+  {
+    id: 'aether-forge',
+    label: 'Aether Forge',
+    blurb: 'Code-focused',
+    tier: 'free',
+    provider: 'pollinations',
+    remote: 'openai-fast',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: false,
+      structuredOutput: true,
+      longContext: false,
+      reasoning: false
+    }
+  }
 ]
 
 const PREMIUM_MODELS = [
   // --- Google Gemini (matching Gemini UI) ---
-  { id: 'gemini-3.5-flash-lite', label: '3.5 Flash-Lite', blurb: 'Fastest answers', tier: 'premium', provider: 'gemini', remote: 'gemini-2.0-flash-lite' },
-  { id: 'gemini-3.6-flash', label: '3.6 Flash', blurb: 'All-around help', tier: 'premium', provider: 'gemini', remote: 'gemini-2.0-flash' },
-  { id: 'gemini-3.1-pro', label: '3.1 Pro', blurb: 'Advanced reasoning', tier: 'premium', provider: 'gemini', remote: 'gemini-1.5-pro' },
-  { id: 'gemini-thinking', label: 'Extended thinking', blurb: 'Complex problem solving', tier: 'premium', provider: 'gemini', remote: 'gemini-2.0-flash-thinking-exp-01-21' },
+  {
+    id: 'gemini-3.5-flash-lite',
+    label: '3.5 Flash-Lite',
+    blurb: 'Fastest answers',
+    tier: 'premium',
+    provider: 'gemini',
+    remote: 'gemini-2.0-flash-lite',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: true,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: false
+    }
+  },
+  {
+    id: 'gemini-3.6-flash',
+    label: '3.6 Flash',
+    blurb: 'All-around help',
+    tier: 'premium',
+    provider: 'gemini',
+    remote: 'gemini-2.0-flash',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: true,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: false
+    }
+  },
+  {
+    id: 'gemini-3.1-pro',
+    label: '3.1 Pro',
+    blurb: 'Advanced reasoning',
+    tier: 'premium',
+    provider: 'gemini',
+    remote: 'gemini-1.5-pro',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: true,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: false
+    }
+  },
+  {
+    id: 'gemini-thinking',
+    label: 'Extended thinking',
+    blurb: 'Complex problem solving',
+    tier: 'premium',
+    provider: 'gemini',
+    remote: 'gemini-2.0-flash-thinking-exp-01-21',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: true,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: true
+    }
+  },
 
   // --- OpenAI / ChatGPT (matching ChatGPT UI) ---
-  { id: 'gpt-4o-mini', label: 'GPT-4o mini', blurb: 'ChatGPT speed', tier: 'premium', provider: 'openai', remote: 'gpt-4o-mini' },
-  { id: 'gpt-4o', label: 'GPT-4o', blurb: 'ChatGPT flagship', tier: 'premium', provider: 'openai', remote: 'gpt-4o' },
-  { id: 'gpt-think', label: 'Think (o3-mini)', blurb: 'Think: Get a smarter answer', tier: 'premium', provider: 'openai', remote: 'o3-mini' }
+  {
+    id: 'gpt-4o-mini',
+    label: 'GPT-4o mini',
+    blurb: 'ChatGPT speed',
+    tier: 'premium',
+    provider: 'openai',
+    remote: 'gpt-4o-mini',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: true,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: false
+    }
+  },
+  {
+    id: 'gpt-4o',
+    label: 'GPT-4o',
+    blurb: 'ChatGPT flagship',
+    tier: 'premium',
+    provider: 'openai',
+    remote: 'gpt-4o',
+    capabilities: {
+      streaming: true,
+      toolCalling: true,
+      vision: true,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: false
+    }
+  },
+  {
+    id: 'gpt-think',
+    label: 'Think (o3-mini)',
+    blurb: 'Think: Get a smarter answer',
+    tier: 'premium',
+    provider: 'openai',
+    remote: 'o3-mini',
+    capabilities: {
+      streaming: true,
+      toolCalling: false,
+      vision: false,
+      structuredOutput: true,
+      longContext: true,
+      reasoning: true
+    }
+  }
 ]
 
 const ALL_MODELS = [...FREE_MODELS, ...PREMIUM_MODELS]
@@ -306,104 +459,10 @@ app.get('/api/search', (req, res) => {
   }
 })
 
-const TOOLS = [
-  {
-    name: 'list_dir',
-    description: 'List files and folders in a workspace path. Use empty path for root.',
-    parameters: {
-      type: 'object',
-      properties: {
-        path: { type: 'string', description: 'Relative directory path' }
-      }
-    }
-  },
-  {
-    name: 'read_file',
-    description: 'Read a text file from the local workspace.',
-    parameters: {
-      type: 'object',
-      properties: {
-        path: { type: 'string', description: 'Relative file path' }
-      },
-      required: ['path']
-    }
-  },
-  {
-    name: 'write_file',
-    description: 'Create or overwrite a text file in the workspace.',
-    parameters: {
-      type: 'object',
-      properties: {
-        path: { type: 'string' },
-        content: { type: 'string' }
-      },
-      required: ['path', 'content']
-    }
-  },
-  {
-    name: 'search_code',
-    description: 'Search text across local workspace files.',
-    parameters: {
-      type: 'object',
-      properties: {
-        query: { type: 'string' }
-      },
-      required: ['query']
-    }
-  }
-]
+const TOOLS = toolRegistry.TOOLS
 
 function runTool(name, args) {
-  try {
-    if (name === 'list_dir') {
-      const abs = safeJoin(args.path || '')
-      const entries = fs.readdirSync(abs, { withFileTypes: true })
-        .filter((e) => !SKIP_DIRS.has(e.name))
-        .map((e) => ({ name: e.name, path: toRel(path.join(abs, e.name)), type: e.isDirectory() ? 'dir' : 'file' }))
-      return JSON.stringify(entries, null, 2)
-    }
-    if (name === 'read_file') {
-      const abs = safeJoin(args.path || '')
-      const stat = fs.statSync(abs)
-      if (stat.size > 200000) return 'File too large to read in one pass.'
-      return fs.readFileSync(abs, 'utf8')
-    }
-    if (name === 'write_file') {
-      const abs = safeJoin(args.path || '')
-      fs.mkdirSync(path.dirname(abs), { recursive: true })
-      fs.writeFileSync(abs, String(args.content ?? ''), 'utf8')
-      return `Wrote ${toRel(abs)}`
-    }
-    if (name === 'search_code') {
-      const q = String(args.query || '').trim()
-      if (!q) return 'Empty query'
-      const files = []
-      collectFiles(root(), files)
-      const needle = q.toLowerCase()
-      const hits = []
-      for (const file of files) {
-        if (hits.length >= 40) break
-        let text
-        try {
-          if (fs.statSync(file).size > 400000) continue
-          text = fs.readFileSync(file, 'utf8')
-        } catch {
-          continue
-        }
-        const lines = text.split('\n')
-        for (let i = 0; i < lines.length; i++) {
-          if (lines[i].toLowerCase().includes(needle)) {
-            hits.push(`${toRel(file)}:${i + 1}: ${lines[i].trim().slice(0, 140)}`)
-            if (hits.length >= 40) break
-          }
-        }
-      }
-      return hits.length ? hits.join('\n') : 'No matches'
-    }
-    return `Unknown tool ${name}`
-  } catch (err) {
-    return `Tool error: ${err.message}`
-  }
+  return toolRegistry.executeTool(name, args, { root, safeJoin, toRel, collectFiles, SKIP_DIRS })
 }
 
 function sseWrite(res, event, data) {
@@ -411,73 +470,14 @@ function sseWrite(res, event, data) {
 }
 
 function openaiTools() {
-  return TOOLS.map((t) => ({
-    type: 'function',
-    function: {
-      name: t.name,
-      description: t.description,
-      parameters: t.parameters
-    }
-  }))
+  return toolRegistry.toOpenAITools()
 }
 
 function geminiTools() {
-  return [{
-    functionDeclarations: TOOLS.map((t) => ({
-      name: t.name,
-      description: t.description,
-      parameters: t.parameters
-    }))
-  }]
+  return toolRegistry.toGeminiTools()
 }
 
-async function openaiChat({ token, model, messages, tools }) {
-  const m = model || 'gpt-4o-mini'
-  const isReasoning = m.startsWith('o1') || m.startsWith('o3')
-  const body = {
-    model: m,
-    messages
-  }
-  if (!isReasoning) {
-    body.temperature = 0.3
-  }
-  if (tools) body.tools = tools
-  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  })
-  const json = await resp.json()
-  if (!resp.ok) {
-    const msg = json.error?.message || `OpenAI HTTP ${resp.status}`
-    throw new Error(msg)
-  }
-  return json
-}
 
-async function geminiChat({ token, model, contents, tools }) {
-  const m = model || 'gemini-2.0-flash'
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(token)}`
-  const body = { contents }
-  if (!m.includes('thinking')) {
-    body.generationConfig = { temperature: 0.3 }
-  }
-  if (tools) body.tools = tools
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  })
-  const json = await resp.json()
-  if (!resp.ok) {
-    const msg = json.error?.message || `Gemini HTTP ${resp.status}`
-    throw new Error(msg)
-  }
-  return json
-}
 
 function fallbackIntelligentResponse(userMsg, mode, context, workspaceRoot) {
   const q = (userMsg || '').trim().toLowerCase()
@@ -626,7 +626,7 @@ async function pollinationsChat({ model, messages, mode, context }) {
     clearTimeout(timer)
     if (resp.ok) {
       const text = await resp.text()
-      if (text && !text.includes('ENOSPC') && !text.startsWith('<!DOCTYPE') && !text.includes('"error":')) {
+      if (text && !text.includes('ENOSPC') && !text.startsWith('<!DOCTYPE') && !text.includes('"error":') && !text.includes('reached its budget')) {
         return { choices: [{ message: { content: text } }] }
       }
     }
@@ -654,7 +654,7 @@ async function pollinationsChat({ model, messages, mode, context }) {
     clearTimeout(timer)
     if (resp.ok) {
       const raw = await resp.text()
-      if (raw && !raw.includes('ENOSPC')) {
+      if (raw && !raw.includes('ENOSPC') && !raw.includes('reached its budget')) {
         let json = {}
         try { json = JSON.parse(raw) } catch {}
         if (json.choices?.[0]?.message?.content) {
@@ -708,87 +708,6 @@ After finishing, summarize what you did.`
 Editor mode: help with the currently open file. Explain, rewrite, or patch code. Use tools if you need extra context.`
 }
 
-async function runOpenAIAgent({ token, model, userMessage, mode, context, res }) {
-  const messages = [
-    { role: 'system', content: systemPrompt(mode) }
-  ]
-  if (context) messages.push({ role: 'user', content: `Current editor context:\n${context}` })
-  messages.push({ role: 'user', content: userMessage })
-
-  for (let i = 0; i < 8; i++) {
-    const json = await openaiChat({
-      token,
-      model,
-      messages,
-      tools: mode === 'agent' || mode === 'editor' ? openaiTools() : undefined
-    })
-    const choice = json.choices?.[0]?.message
-    if (!choice) throw new Error('Empty OpenAI response')
-    messages.push(choice)
-    const calls = choice.tool_calls || []
-    if (!calls.length) {
-      sseWrite(res, 'message', { text: choice.content || '' })
-      return
-    }
-    for (const call of calls) {
-      const name = call.function.name
-      let args = {}
-      try { args = JSON.parse(call.function.arguments || '{}') } catch { args = {} }
-      sseWrite(res, 'tool', { name, args, status: 'running' })
-      const output = runTool(name, args)
-      sseWrite(res, 'tool', { name, args, status: 'done', output: String(output).slice(0, 4000) })
-      messages.push({ role: 'tool', tool_call_id: call.id, content: String(output).slice(0, 12000) })
-    }
-  }
-  sseWrite(res, 'message', { text: 'Stopped after too many tool steps.' })
-}
-
-function geminiPartsToText(parts) {
-  return (parts || []).filter((p) => p.text).map((p) => p.text).join('')
-}
-
-async function runGeminiAgent({ token, model, userMessage, mode, context, res }) {
-  const contents = []
-  const intro = systemPrompt(mode) + (context ? `\n\nCurrent editor context:\n${context}` : '')
-  contents.push({
-    role: 'user',
-    parts: [{ text: `${intro}\n\nUser request:\n${userMessage}` }]
-  })
-
-  for (let i = 0; i < 8; i++) {
-    const json = await geminiChat({
-      token,
-      model,
-      contents,
-      tools: geminiTools()
-    })
-    const cand = json.candidates?.[0]
-    const parts = cand?.content?.parts || []
-    const fnCalls = parts.filter((p) => p.functionCall)
-    if (!fnCalls.length) {
-      sseWrite(res, 'message', { text: geminiPartsToText(parts) || '' })
-      return
-    }
-    contents.push({ role: 'model', parts })
-    const responseParts = []
-    for (const p of fnCalls) {
-      const name = p.functionCall.name
-      const args = p.functionCall.args || {}
-      sseWrite(res, 'tool', { name, args, status: 'running' })
-      const output = runTool(name, args)
-      sseWrite(res, 'tool', { name, args, status: 'done', output: String(output).slice(0, 4000) })
-      responseParts.push({
-        functionResponse: {
-          name,
-          response: { result: String(output).slice(0, 12000) }
-        }
-      })
-    }
-    contents.push({ role: 'user', parts: responseParts })
-  }
-  sseWrite(res, 'message', { text: 'Stopped after too many tool steps.' })
-}
-
 async function runFreeAgent({ model, userMessage, mode, context, res }) {
   const messages = [{ role: 'system', content: freeToolPrompt(mode) }]
   if (context) messages.push({ role: 'user', content: `Current editor context:\n${context}` })
@@ -812,15 +731,19 @@ async function runFreeAgent({ model, userMessage, mode, context, res }) {
   sseWrite(res, 'message', { text: 'Stopped after too many tool steps.' })
 }
 
-
 app.post('/api/chat', async (req, res) => {
   const { token, model, message, mode, context } = req.body || {}
   if (!message) return res.status(400).json({ error: 'message required' })
   const spec = MODEL_MAP[model] || MODEL_MAP['aether-spark']
   const m = mode === 'editor' ? 'editor' : 'agent'
 
-  if (spec.tier === 'premium' && !token) {
-    return res.status(400).json({ error: 'Premium model needs a ChatGPT or Gemini token' })
+  if (spec.tier === 'premium' && (!token || !String(token).trim())) {
+    const providerName = spec.provider === 'gemini' ? 'Google Gemini' : 'OpenAI'
+    return res.status(400).json({
+      error: `${providerName} API key is not configured. Please add your token in Settings (Ctrl+,) or the Token Vault.`,
+      provider: spec.provider,
+      model: spec.id
+    })
   }
 
   res.setHeader('Content-Type', 'text/event-stream')
@@ -828,17 +751,43 @@ app.post('/api/chat', async (req, res) => {
   res.setHeader('Connection', 'keep-alive')
   res.flushHeaders?.()
 
+  const onEvent = (event, data) => {
+    sseWrite(res, event, data)
+  }
+
   try {
     if (spec.provider === 'pollinations') {
       await runFreeAgent({ model: spec.remote, userMessage: message, mode: m, context, res })
+      sseWrite(res, 'done', { ok: true })
     } else if (spec.provider === 'gemini') {
-      await runGeminiAgent({ token, model: spec.remote, userMessage: message, mode: m, context, res })
+      await runGeminiAgent({
+        token,
+        model: spec.remote,
+        userMessage: message,
+        mode: m,
+        context,
+        systemPrompt,
+        toolRegistry,
+        helpers: { root, safeJoin, toRel, collectFiles, SKIP_DIRS },
+        onEvent
+      })
+    } else if (spec.provider === 'openai') {
+      await runOpenAIAgent({
+        token,
+        model: spec.remote,
+        userMessage: message,
+        mode: m,
+        context,
+        systemPrompt,
+        toolRegistry,
+        helpers: { root, safeJoin, toRel, collectFiles, SKIP_DIRS },
+        onEvent
+      })
     } else {
-      await runOpenAIAgent({ token, model: spec.remote, userMessage: message, mode: m, context, res })
+      sseWrite(res, 'error', { error: `Unsupported model provider: ${spec.provider}` })
     }
-    sseWrite(res, 'done', { ok: true })
   } catch (err) {
-    sseWrite(res, 'error', { error: err.message })
+    sseWrite(res, 'error', { error: err.message, provider: spec.provider, model: spec.id })
   }
   res.end()
 })

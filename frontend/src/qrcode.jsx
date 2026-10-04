@@ -197,6 +197,101 @@ function getQRCodeModules(text) {
   return matrix
 }
 
+export { getQRCodeModules }
+
+export function downloadQRCodePNG(text, filename = 'aether-studio-qr.png') {
+  if (typeof document === 'undefined' || !text) return false
+  try {
+    const modules = getQRCodeModules(text)
+    if (!modules || !modules.length) return false
+    const count = modules.length
+    const canvas = document.createElement('canvas')
+    const width = 560
+    const height = 640
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return false
+
+    // Sleek dark gradient background
+    const bgGrad = ctx.createLinearGradient(0, 0, width, height)
+    bgGrad.addColorStop(0, '#0c1016')
+    bgGrad.addColorStop(0.5, '#0f1722')
+    bgGrad.addColorStop(1, '#090d13')
+    ctx.fillStyle = bgGrad
+    ctx.fillRect(0, 0, width, height)
+
+    // Glowing cyber neon border
+    const borderGrad = ctx.createLinearGradient(0, 0, width, height)
+    borderGrad.addColorStop(0, '#38bdf8')
+    borderGrad.addColorStop(0.5, '#818cf8')
+    borderGrad.addColorStop(1, '#c084fc')
+    ctx.strokeStyle = borderGrad
+    ctx.lineWidth = 4
+    ctx.strokeRect(18, 18, width - 36, height - 36)
+
+    // Title & Subtitle header
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('AETHER AI STUDIO', width / 2, 58)
+
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '13px system-ui, -apple-system, sans-serif'
+    ctx.fillText('Scan with Phone Camera to Install / Open', width / 2, 82)
+
+    // QR Code Box background
+    const qrBoxSize = 400
+    const qrX = (width - qrBoxSize) / 2
+    const qrY = 108
+    ctx.fillStyle = '#131920'
+    ctx.fillRect(qrX, qrY, qrBoxSize, qrBoxSize)
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'
+    ctx.lineWidth = 1.5
+    ctx.strokeRect(qrX, qrY, qrBoxSize, qrBoxSize)
+
+    // QR Modules
+    const padding = 24
+    const drawSize = qrBoxSize - padding * 2
+    const cellSize = drawSize / count
+    ctx.fillStyle = '#f3ead8'
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (modules[r][c]) {
+          ctx.fillRect(
+            qrX + padding + c * cellSize,
+            qrY + padding + r * cellSize,
+            cellSize + 0.5,
+            cellSize + 0.5
+          )
+        }
+      }
+    }
+
+    // Footer URL display
+    ctx.fillStyle = '#38bdf8'
+    ctx.font = '500 12px "Courier New", monospace'
+    const shortUrl = text.length > 55 ? text.slice(0, 52) + '...' : text
+    ctx.fillText(shortUrl, width / 2, 545)
+
+    ctx.fillStyle = '#64748b'
+    ctx.font = '11px system-ui, -apple-system, sans-serif'
+    ctx.fillText('Instant Mobile Web App • iOS & Android', width / 2, 575)
+
+    // Trigger download
+    const link = document.createElement('a')
+    link.download = filename
+    link.href = canvas.toDataURL('image/png')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    return true
+  } catch (err) {
+    console.error('downloadQRCodePNG failed:', err)
+    return false
+  }
+}
+
 export function QRCodeSVG({ text, size = 180, color = '#f3ead8', bg = '#131920' }) {
   if (!text) return null
   let modules
