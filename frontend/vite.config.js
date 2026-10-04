@@ -26,9 +26,44 @@ try {
       }
     }
 
-    // 2. Generate 100% self-contained SVG favicon (no external sub-resources, works in all browsers)
+    // 2. Generate 100% self-contained SVG favicon with matching high-impact edge, specular glare, and neon aura
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" width="512" height="512">
-  <image href="${dataUri}" width="512" height="512" />
+  <defs>
+    <filter id="neonBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+    </filter>
+    <linearGradient id="specularGlare" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38" />
+      <stop offset="35%" stop-color="#38bdf8" stop-opacity="0.22" />
+      <stop offset="65%" stop-color="#a855f7" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="transparent" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+    <clipPath id="sqClip">
+      <rect x="18" y="18" width="476" height="476" rx="108" />
+    </clipPath>
+  </defs>
+
+  <!-- Ambient Outer Neon Aura -->
+  <rect x="22" y="22" width="468" height="468" rx="104" fill="none" stroke="#38bdf8" stroke-width="16" opacity="0.45" filter="url(#neonBlur)" />
+  <rect x="22" y="22" width="468" height="468" rx="104" fill="none" stroke="#a855f7" stroke-width="12" opacity="0.35" filter="url(#neonBlur)" />
+
+  <!-- Main Image with Squircle Clip -->
+  <g clip-path="url(#sqClip)">
+    <image href="${dataUri}" x="18" y="18" width="476" height="476" preserveAspectRatio="xMidYMid slice" />
+    <!-- Diagonal Specular 3D Glass Sheen -->
+    <rect x="18" y="18" width="476" height="476" fill="url(#specularGlare)" />
+    <!-- Inner Neon Edge Glow -->
+    <rect x="20" y="20" width="472" height="472" rx="106" fill="none" stroke="rgba(56, 189, 248, 0.35)" stroke-width="8" />
+  </g>
+
+  <!-- Double-Sheen High-Impact Edge Border Rings -->
+  <rect x="18" y="18" width="476" height="476" rx="108" fill="none" stroke="url(#rimGrad)" stroke-width="6" />
+  <rect x="22" y="22" width="468" height="468" rx="104" fill="none" stroke="rgba(255, 255, 255, 0.45)" stroke-width="2.5" />
 </svg>`
 
     fs.writeFileSync(path.join(pubDir, 'favicon.svg'), svgContent, 'utf8')
