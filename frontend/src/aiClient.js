@@ -89,12 +89,15 @@ async function fetchFreeAIResponse({ messages, proxyUrl = '', signal, context })
   const userMsg = messages.filter((m) => m.role === 'user').map((m) => m.content).join('\n\n')
   const cleanMsg = (userMsg || '').trim()
 
-  // Strategy 1: Fast direct GET endpoint with clean prompt (no &system= to avoid 500 ENOSPC)
+  // Strategy 1: Fast direct GET endpoint with 8s timeout
   try {
+    const getCtrl = new AbortController()
+    const getTimer = setTimeout(() => getCtrl.abort(), 8000)
     const promptParam = encodeURIComponent(cleanMsg.slice(0, 350) || 'Hello')
     const getUrl = `https://text.pollinations.ai/${promptParam}?model=openai-fast`
     const finalUrl = cleanProxy ? `${cleanProxy}${getUrl}` : getUrl
-    const resp = await fetch(finalUrl, { signal })
+    const resp = await fetch(finalUrl, { signal: signal || getCtrl.signal })
+    clearTimeout(getTimer)
     if (resp.ok) {
       const text = await resp.text()
       if (text && !text.includes('ENOSPC') && !text.startsWith('<!DOCTYPE') && !text.includes('"error":')) {
@@ -105,8 +108,10 @@ async function fetchFreeAIResponse({ messages, proxyUrl = '', signal, context })
     console.warn('[Aether AI] Strategy 1 (Pollinations GET) error:', err.message)
   }
 
-  // Strategy 2: Direct POST to https://text.pollinations.ai/openai
+  // Strategy 2: Direct POST to https://text.pollinations.ai/openai with 8s timeout
   try {
+    const postCtrl = new AbortController()
+    const postTimer = setTimeout(() => postCtrl.abort(), 8000)
     const url = cleanProxy ? `${cleanProxy}https://text.pollinations.ai/openai` : 'https://text.pollinations.ai/openai'
     const resp = await fetch(url, {
       method: 'POST',
@@ -116,26 +121,27 @@ async function fetchFreeAIResponse({ messages, proxyUrl = '', signal, context })
         messages: [{ role: 'user', content: cleanMsg.slice(0, 500) }],
         temperature: 0.3
       }),
-      signal
+      signal: signal || postCtrl.signal
     })
-  if (resp.ok) {
-    const raw = await resp.text()
-    try {
-      const json = JSON.parse(raw)
-      const text = json.choices?.[0]?.message?.content || json.message || ''
-      if (text && !text.includes('ENOSPC')) return text
-    } catch {
-      if (raw && !raw.startsWith('{') && !raw.startsWith('<') && !raw.includes('ENOSPC')) {
-        return raw
+    clearTimeout(postTimer)
+    if (resp.ok) {
+      const raw = await resp.text()
+      try {
+        const json = JSON.parse(raw)
+        const text = json.choices?.[0]?.message?.content || json.message || ''
+        if (text && !text.includes('ENOSPC')) return text
+      } catch {
+        if (raw && !raw.startsWith('{') && !raw.startsWith('<') && !raw.includes('ENOSPC')) {
+          return raw
+        }
       }
     }
+  } catch (err) {
+    console.warn('[Aether AI] Strategy 2 (Pollinations OpenAI) error:', err.message)
   }
-} catch (err) {
-  console.warn('[Aether AI] Strategy 2 (Pollinations OpenAI) error:', err.message)
-}
 
-// Strategy 3: Resilient built-in fallback response
-return fallbackWebResponse(cleanMsg, context)
+  // Strategy 3: Resilient built-in fallback response (instant, reliable, zero network dependency)
+  return fallbackWebResponse(cleanMsg, context)
 }
 
 export async function executeChat({
@@ -148,66 +154,81 @@ export async function executeChat({
   onEvent,
   proxyUrl = ''
 }) {
-  // 1. Try local backend /api/chat first if available (45s timeout for AI generation)
-  try {
-    const controller = new AbortController()
-    const tId = setTimeout(() => controller.abort(), 45000)
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token,
-        model: model.id,
-        message,
-        mode,
-        context
-      }),
-      signal: controller.signal
-    })
-    if (!res.ok) {
-      let errData = {}
-      try { errData = await res.json() } catch {}
-      const safeErr = sanitizeError(errData?.error || `Request failed with HTTP ${res.status}`)
-      onEvent('error', { error: safeErr, provider: model.provider, model: model.id })
-      onEvent('agent.error', { error: safeErr, provider: model.provider, model: model.id })
-      return
-    }
+  const isLocalHost = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  )
 
-    const ctype = res.headers.get('content-type') || ''
-    if (ctype.includes('text/event-stream')) {
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buf = ''
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buf += decoder.decode(value, { stream: true })
-        const chunks = buf.split('\n\n')
-        buf = chunks.pop() || ''
-        for (const chunk of chunks) {
-          const lines = chunk.split('\n')
-          let event = 'message'
-          let data = ''
-          for (const line of lines) {
-            if (line.startsWith('event:')) event = line.slice(6).trim()
-            if (line.startsWith('data:')) data += line.slice(5).trim()
+  // 1. Try local backend /api/chat only if running in a local environment (with Node backend)
+  if (isLocalHost) {
+    try {
+      const controller = new AbortController()
+      const tId = setTimeout(() => controller.abort(), 45000)
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          model: model.id,
+          message,
+          mode,
+          context
+        }),
+        signal: controller.signal
+      })
+      clearTimeout(tId)
+
+      // If backend returned 404 or 405 (static file server or missing route), fall through to Direct Web Mode
+      if (res.status === 404 || res.status === 405) {
+        console.warn(`[Aether AI] Local /api/chat returned HTTP ${res.status}. Falling through to Direct Web Mode.`)
+      } else if (!res.ok) {
+        let errData = {}
+        try { errData = await res.json() } catch {}
+        // For configured premium models where the backend returned a specific error (e.g. invalid key):
+        if (model.tier === 'premium' || (errData?.error && !errData.error.includes('Cannot POST') && !errData.error.includes('405'))) {
+          const safeErr = sanitizeError(errData?.error || `Request failed with HTTP ${res.status}`)
+          onEvent('error', { error: safeErr, provider: model.provider, model: model.id })
+          onEvent('agent.error', { error: safeErr, provider: model.provider, model: model.id })
+          return
+        }
+      } else {
+        const ctype = res.headers.get('content-type') || ''
+        if (ctype.includes('text/event-stream')) {
+          const reader = res.body.getReader()
+          const decoder = new TextDecoder()
+          let buf = ''
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            buf += decoder.decode(value, { stream: true })
+            const chunks = buf.split('\n\n')
+            buf = chunks.pop() || ''
+            for (const chunk of chunks) {
+              const lines = chunk.split('\n')
+              let event = 'message'
+              let data = ''
+              for (const line of lines) {
+                if (line.startsWith('event:')) event = line.slice(6).trim()
+                if (line.startsWith('data:')) data += line.slice(5).trim()
+              }
+              if (data) {
+                try { onEvent(event, JSON.parse(data)) } catch { onEvent(event, { raw: data }) }
+              }
+            }
           }
-          if (data) {
-            try { onEvent(event, JSON.parse(data)) } catch { onEvent(event, { raw: data }) }
-          }
+          return
         }
       }
-      return
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        onEvent('error', { error: 'Request timed out after 45 seconds.' })
+        return
+      }
+      console.warn('[Aether AI] Local backend unavailable, switching to Direct Web Mode:', err.message)
     }
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      onEvent('error', { error: 'Request timed out after 45 seconds.' })
-      return
-    }
-    // Only fall back to Direct Web Mode if backend connection completely failed (e.g. static web hosting)
   }
 
-  // 2. Direct Web Mode (Zero backend dependency)
+  // 2. Direct Web Mode (Zero backend dependency - works on GitHub Pages, mobile, and offline)
   if (model.tier === 'free' || model.provider === 'pollinations') {
     const messages = [
       { role: 'system', content: TOOLS_XML_PROMPT(mode, dirHandle?.name) }

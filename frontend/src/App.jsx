@@ -602,6 +602,8 @@ export default function App() {
   const [nameDraft, setNameDraft] = useState(() => localStorage.getItem(USER_KEY) || '')
   const [centerDraft, setCenterDraft] = useState('')
   const [capsulePickerOpen, setCapsulePickerOpen] = useState(false)
+  const [bookmarksOpen, setBookmarksOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   const [plusMenuOpen, setPlusMenuOpen] = useState(false)
   const [listening, setListening] = useState(false)
   const [msgMenuIdx, setMsgMenuIdx] = useState(null)
@@ -2539,72 +2541,204 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                   )}
                 </form>
 
-                {/* Suggestions and Quick Actions */}
-                <div className="gemini-shortcuts">
-                  <button
-                    type="button"
-                    className="gemini-shortcut-chip main-action"
-                    onClick={openLocalFolder}
-                  >
-                    <span className="chip-ico">📂</span>
-                    <span>Open Local Project</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="gemini-shortcut-chip main-action"
-                    onClick={openFolderPicker}
-                  >
-                    <span className="chip-ico">🌐</span>
-                    <span>Browse Workspace</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="gemini-shortcut-chip prompt-chip"
-                    onClick={() => send("Build a modern, responsive web application with animated blue cosmic styling and interactive components")}
-                  >
-                    <span className="chip-ico">✨</span>
-                    <span>Build modern web app</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="gemini-shortcut-chip prompt-chip"
-                    onClick={() => send("Analyze and explain the architecture of this project")}
-                  >
-                    <span className="chip-ico">💡</span>
-                    <span>Explain architecture</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="gemini-shortcut-chip prompt-chip"
-                    onClick={() => send("Find potential bugs, edge cases, and performance bottlenecks")}
-                  >
-                    <span className="chip-ico">🐛</span>
-                    <span>Find bugs</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="gemini-shortcut-chip prompt-chip"
-                    onClick={() => send("Create a reusable React UI component with clean state and styles")}
-                  >
-                    <span className="chip-ico">⚡</span>
-                    <span>Generate component</span>
-                  </button>
-                </div>
+                {/* Modern Landing Controls: Bookmarks & System Info */}
+                <div className="gemini-modern-controls">
+                  {/* Bookmarks Popover Trigger */}
+                  <div className="landing-popover-anchor">
+                    <button
+                      type="button"
+                      className={`gemini-control-btn ${bookmarksOpen ? 'active' : ''}`}
+                      onClick={() => {
+                        setBookmarksOpen((v) => !v)
+                        setInfoOpen(false)
+                      }}
+                      title="Quick Workspace Actions & Starter Prompts"
+                    >
+                      <span className="control-btn-icon">🔖</span>
+                      <span className="control-btn-label">Bookmarks</span>
+                      <span className="control-btn-badge">6</span>
+                      <span className="control-btn-arrow">{bookmarksOpen ? '▲' : '▼'}</span>
+                    </button>
 
-                {/* Bottom Technical Status Pills */}
-                <div className="gemini-footer-pills">
-                  <span className="g-pill">Port 4576</span>
-                  <span className="g-pill">Direct Web File System</span>
-                  <span className="g-pill">Multi-Model AI</span>
-                  <span className="g-pill">Zero Local Dependencies</span>
-                  <button
-                    type="button"
-                    className="g-pill user-link"
-                    onClick={() => { setNameDraft(userName); setWelcomeModalOpen(true); }}
-                    title="Change display name"
-                  >
-                    👤 {userName ? `Hi, ${userName}` : 'Set Name'}
-                  </button>
+                    {bookmarksOpen && (
+                      <>
+                        <div className="picker-overlay" onClick={() => setBookmarksOpen(false)} />
+                        <div className="gemini-modern-popover bookmarks-popover" onClick={(e) => e.stopPropagation()}>
+                          <div className="popover-top">
+                            <div className="popover-title-row">
+                              <span className="popover-icon">🔖</span>
+                              <div>
+                                <strong>Bookmarks &amp; Quick Actions</strong>
+                                <p>Workspace tools and one-tap starter prompts</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="popover-x-btn"
+                              onClick={() => setBookmarksOpen(false)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+
+                          <div className="popover-body">
+                            <div className="popover-group-label">📂 Workspace Shortcuts</div>
+                            <div className="popover-chips-row">
+                              <button
+                                type="button"
+                                className="gemini-shortcut-chip main-action"
+                                onClick={() => {
+                                  setBookmarksOpen(false)
+                                  openLocalFolder()
+                                }}
+                              >
+                                <span className="chip-ico">📂</span>
+                                <span>Open Local Project</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="gemini-shortcut-chip main-action"
+                                onClick={() => {
+                                  setBookmarksOpen(false)
+                                  openFolderPicker()
+                                }}
+                              >
+                                <span className="chip-ico">🌐</span>
+                                <span>Browse Workspace</span>
+                              </button>
+                            </div>
+
+                            <div className="popover-group-label" style={{ marginTop: 14 }}>✨ Starter Prompts</div>
+                            <div className="popover-chips-grid">
+                              <button
+                                type="button"
+                                className="gemini-shortcut-chip prompt-chip"
+                                onClick={() => {
+                                  setBookmarksOpen(false)
+                                  send("Build a modern, responsive web application with animated blue cosmic styling and interactive components")
+                                }}
+                              >
+                                <span className="chip-ico">✨</span>
+                                <span>Build modern web app</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="gemini-shortcut-chip prompt-chip"
+                                onClick={() => {
+                                  setBookmarksOpen(false)
+                                  send("Analyze and explain the architecture of this project")
+                                }}
+                              >
+                                <span className="chip-ico">💡</span>
+                                <span>Explain architecture</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="gemini-shortcut-chip prompt-chip"
+                                onClick={() => {
+                                  setBookmarksOpen(false)
+                                  send("Find potential bugs, edge cases, and performance bottlenecks")
+                                }}
+                              >
+                                <span className="chip-ico">🐛</span>
+                                <span>Find bugs</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="gemini-shortcut-chip prompt-chip"
+                                onClick={() => {
+                                  setBookmarksOpen(false)
+                                  send("Create a reusable React UI component with clean state and styles")
+                                }}
+                              >
+                                <span className="chip-ico">⚡</span>
+                                <span>Generate component</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Info Popover Trigger */}
+                  <div className="landing-popover-anchor">
+                    <button
+                      type="button"
+                      className={`gemini-control-btn ${infoOpen ? 'active' : ''}`}
+                      onClick={() => {
+                        setInfoOpen((v) => !v)
+                        setBookmarksOpen(false)
+                      }}
+                      title="System Status & Engine Information"
+                    >
+                      <span className="control-btn-icon">ℹ️</span>
+                      <span className="control-btn-label">Info</span>
+                      <span className="control-live-dot" />
+                      <span className="control-btn-arrow">{infoOpen ? '▲' : '▼'}</span>
+                    </button>
+
+                    {infoOpen && (
+                      <>
+                        <div className="picker-overlay" onClick={() => setInfoOpen(false)} />
+                        <div className="gemini-modern-popover info-popover" onClick={(e) => e.stopPropagation()}>
+                          <div className="popover-top">
+                            <div className="popover-title-row">
+                              <span className="popover-icon">ℹ️</span>
+                              <div>
+                                <strong>System &amp; Runtime Info</strong>
+                                <p>Real-time environment &amp; workspace status</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              className="popover-x-btn"
+                              onClick={() => setInfoOpen(false)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+
+                          <div className="popover-body">
+                            <div className="info-pills-grid">
+                              <div className="info-item">
+                                <span className="info-item-label">Network Port</span>
+                                <span className="g-pill info-pill">Port {networkInfo.port || window.location.port || '4576'}</span>
+                              </div>
+                              <div className="info-item">
+                                <span className="info-item-label">File Storage</span>
+                                <span className="g-pill info-pill">Direct Web File System</span>
+                              </div>
+                              <div className="info-item">
+                                <span className="info-item-label">Intelligence</span>
+                                <span className="g-pill info-pill">Multi-Model AI</span>
+                              </div>
+                              <div className="info-item">
+                                <span className="info-item-label">Dependencies</span>
+                                <span className="g-pill info-pill">Zero Local Dependencies</span>
+                              </div>
+                              <div className="info-item full-width">
+                                <span className="info-item-label">User Profile</span>
+                                <button
+                                  type="button"
+                                  className="g-pill user-link info-user-pill"
+                                  onClick={() => {
+                                    setInfoOpen(false)
+                                    setNameDraft(userName)
+                                    setWelcomeModalOpen(true)
+                                  }}
+                                  title="Click to customize your display name"
+                                >
+                                  👤 {userName ? `Hi, ${userName}` : 'Set Name'}
+                                  <span className="pill-edit-hint">✎ Edit</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

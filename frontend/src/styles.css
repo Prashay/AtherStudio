@@ -3421,6 +3421,275 @@ body.resizing-col * {
   color: var(--paper);
 }
 
+/* =========================================================
+   MODERN LANDING CONTROLS (BOOKMARKS & SYSTEM INFO POPOVERS)
+   ========================================================= */
+
+.gemini-modern-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+  position: relative;
+  z-index: 90;
+}
+
+.landing-popover-anchor {
+  position: relative;
+}
+
+.gemini-control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(18, 24, 38, 0.7);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #e2e8f0;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.gemini-control-btn:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #ffffff;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 24px rgba(56, 189, 248, 0.2);
+}
+
+.gemini-control-btn.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(168, 85, 247, 0.2));
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+}
+
+.gemini-control-btn .control-btn-icon {
+  font-size: 14px;
+}
+
+.gemini-control-btn .control-btn-label {
+  letter-spacing: 0.01em;
+}
+
+.gemini-control-btn .control-btn-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.gemini-control-btn .control-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  display: inline-block;
+}
+
+.gemini-control-btn .control-btn-arrow {
+  font-size: 9px;
+  opacity: 0.6;
+  margin-left: 2px;
+  transition: transform 0.2s ease;
+}
+
+/* Popover Cards */
+.gemini-modern-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(500px, 94vw);
+  background: rgba(15, 21, 32, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(56, 189, 248, 0.12);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  z-index: 999;
+  animation: popover-drop-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes popover-drop-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.gemini-modern-popover.info-popover {
+  width: min(440px, 94vw);
+}
+
+.popover-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popover-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.popover-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.popover-title-row strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.popover-title-row p {
+  margin: 2px 0 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.popover-x-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.popover-x-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.popover-group-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.popover-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.popover-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Info Pills Grid */
+.info-pills-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+}
+
+.info-item-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.info-pill {
+  font-size: 12px !important;
+  padding: 4px 10px !important;
+}
+
+.info-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px !important;
+}
+
+.pill-edit-hint {
+  font-size: 10px;
+  color: #38bdf8;
+  opacity: 0.8;
+}
+
+/* Responsive Mobile Screens */
+@media (max-width: 600px) {
+  .gemini-modern-controls {
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .gemini-control-btn {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+  .gemini-modern-popover {
+    position: fixed;
+    top: auto;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(94vw, 420px);
+    max-height: 72dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 20px;
+    animation: sheet-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .gemini-modern-popover.info-popover {
+    width: min(94vw, 400px);
+  }
+}
+
 /* Landing & Clean Project States */
 .landing-actions {
   display: flex;
