@@ -368,7 +368,7 @@ export default function App() {
   const feedRef = useRef(null)
   const chatInputRef = useRef(null)
   const [userName, setUserName] = useState(() => localStorage.getItem(USER_KEY) || '')
-  const [welcomeModalOpen, setWelcomeModalOpen] = useState(() => !localStorage.getItem(WELCOME_SEEN_KEY))
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false)
   const [nameDraft, setNameDraft] = useState(() => localStorage.getItem(USER_KEY) || '')
   const [centerDraft, setCenterDraft] = useState('')
   const [capsulePickerOpen, setCapsulePickerOpen] = useState(false)
@@ -1177,7 +1177,7 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
           </div>
         </div>
         <div className="modes">
-          <button className={mode === 'agent' ? 'on' : ''} onClick={() => { setMode('agent'); setPane('chat'); }}>Agent</button>
+          <button className={mode === 'agent' ? 'on' : ''} onClick={() => { setMode('agent'); setPane('editor'); }}>Agent</button>
           <button className={mode === 'chat' ? 'on' : ''} onClick={() => { setMode('chat'); setPane('editor'); }}>Chat</button>
           <button className={mode === 'editor' ? 'on' : ''} onClick={() => { setMode('editor'); setPane('editor'); }}>Editor</button>
         </div>
@@ -2999,6 +2999,15 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
       {welcomeModalOpen && (
         <div className="modal-back apple-welcome-back" onClick={() => setWelcomeModalOpen(false)}>
           <div className="modal apple-welcome-card" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="settings-close-btn welcome-close-btn"
+              onClick={() => setWelcomeModalOpen(false)}
+              title="Close"
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}
+            >
+              ✕
+            </button>
             <div className="sheet-handle" />
             <div className="apple-badge">
               <span className="apple-badge-sparkle">✦</span>
@@ -3105,21 +3114,21 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                 <div className="mobile-modes-grid">
                   <button
                     className={`mobile-mode-btn ${mode === 'chat' ? 'on' : ''}`}
-                    onClick={() => { setMode('chat'); setMobileMenuOpen(false) }}
+                    onClick={() => { setMode('chat'); setPane('editor'); setMobileMenuOpen(false) }}
                   >
                     <strong>💬 AI Chat</strong>
                     <span>Gemini / GPT Mode</span>
                   </button>
                   <button
                     className={`mobile-mode-btn ${mode === 'agent' ? 'on' : ''}`}
-                    onClick={() => { setMode('agent'); setMobileMenuOpen(false) }}
+                    onClick={() => { setMode('agent'); setPane('editor'); setMobileMenuOpen(false) }}
                   >
                     <strong>🤖 AI Agent</strong>
                     <span>Multi-step task coding</span>
                   </button>
                   <button
                     className={`mobile-mode-btn ${mode === 'editor' ? 'on' : ''}`}
-                    onClick={() => { setMode('editor'); setMobileMenuOpen(false) }}
+                    onClick={() => { setMode('editor'); setPane('editor'); setMobileMenuOpen(false) }}
                   >
                     <strong>📝 Editor</strong>
                     <span>Direct editing &amp; assist</span>

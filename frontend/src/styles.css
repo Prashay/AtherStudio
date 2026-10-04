@@ -1783,7 +1783,7 @@ body.resizing-col * {
   background: rgba(6, 8, 12, 0.72);
   display: grid;
   place-items: center;
-  z-index: 20;
+  z-index: 120;
 }
 .modal {
   width: min(460px, 92vw);
@@ -2266,42 +2266,75 @@ body.resizing-col * {
     display: none !important;
   }
 
-  /* Shell: 100% full screen for current active pane */
+  /* Shell on Mobile: Robust Flex Container (replaces desktop 3-column grid) */
   .shell {
-    grid-template-columns: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
     grid-template-areas: none !important;
-    height: 100%;
-    min-height: 0;
-    max-height: 100%;
-    width: 100%;
-    overflow: hidden;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    position: relative !important;
+    flex: 1 1 auto !important;
   }
+
+  /* Reset all desktop grid-area assignments for mobile children */
   .shell .side,
   .shell .stage,
   .shell .chat {
+    grid-area: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    flex: 1 1 100% !important;
+    position: relative !important;
     display: none !important;
-    min-height: 0;
-    height: 100%;
-    width: 100%;
-    max-height: 100%;
-    overflow: hidden;
+    overflow: hidden !important;
   }
+
+  /* Override desktop hide-left and hide-right on mobile so they don't break active panes */
+  .shell.hide-left .side,
+  .shell.hide-right .chat,
+  .shell.hide-left.hide-right .side,
+  .shell.hide-left.hide-right .chat {
+    display: none;
+  }
+
+  /* Active Pane display rules on mobile */
   .shell.pane-files .side {
     display: flex !important;
-    flex-direction: column;
+    flex-direction: column !important;
   }
   .shell.pane-editor .stage {
     display: flex !important;
-    flex-direction: column;
+    flex-direction: column !important;
   }
   .shell.pane-chat .chat {
     display: flex !important;
-    flex-direction: column;
+    flex-direction: column !important;
   }
 
-  /* When in Chat mode, always display stage full screen and hide sidebars */
+  /* When mode is chat, always display stage (housing the chat-mode-shell container) */
   .app.mode-chat .shell .stage,
   .shell.mode-chat .stage {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .app.mode-chat .shell .side,
+  .shell.mode-chat .side,
+  .app.mode-chat .shell .chat,
+  .shell.mode-chat .chat {
+    display: none !important;
+  }
+
+  /* Stage and inner view containers */
+  .stage {
+    flex: 1 1 100% !important;
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
@@ -2309,12 +2342,18 @@ body.resizing-col * {
     min-height: 0 !important;
     max-height: 100% !important;
     overflow: hidden !important;
+    position: relative !important;
   }
-  .app.mode-chat .shell .side,
-  .shell.mode-chat .side,
-  .app.mode-chat .shell .chat,
-  .shell.mode-chat .chat {
-    display: none !important;
+
+  .stage .gemini-landing,
+  .stage .editor-workspace-empty,
+  .stage .editor-wrap,
+  .stage .chat-mode-shell {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
   }
 
   /* Bottom Navigation Dock */
@@ -2612,10 +2651,20 @@ body.resizing-col * {
 
   /* Landing Screen on Mobile */
   .gemini-landing {
-    padding: 20px 14px;
-    justify-content: center;
-    overflow-y: auto;
+    padding: 24px 14px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+  }
+  .gemini-landing-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-bottom: 24px !important;
   }
   .aura-glow-outer {
     width: 95vw;
