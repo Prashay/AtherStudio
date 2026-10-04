@@ -1167,7 +1167,7 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
   const linked = selected.tier === 'free' || Boolean(premiumToken(selected))
 
   return (
-    <div className="app">
+    <div className={`app mode-${mode}`}>
       <header className="topbar">
         <div className="mark">
           <div className="mark-orb" />
@@ -1177,9 +1177,9 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
           </div>
         </div>
         <div className="modes">
-          <button className={mode === 'agent' ? 'on' : ''} onClick={() => setMode('agent')}>Agent</button>
-          <button className={mode === 'chat' ? 'on' : ''} onClick={() => setMode('chat')}>Chat</button>
-          <button className={mode === 'editor' ? 'on' : ''} onClick={() => setMode('editor')}>Editor</button>
+          <button className={mode === 'agent' ? 'on' : ''} onClick={() => { setMode('agent'); setPane('chat'); }}>Agent</button>
+          <button className={mode === 'chat' ? 'on' : ''} onClick={() => { setMode('chat'); setPane('editor'); }}>Chat</button>
+          <button className={mode === 'editor' ? 'on' : ''} onClick={() => { setMode('editor'); setPane('editor'); }}>Editor</button>
         </div>
         <div className="top-actions">
           <div className="picker-wrap">
@@ -1245,7 +1245,7 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
             <span className="user-pill-sparkle">✦</span>
             <span>{userName ? `Hi, ${userName}` : 'Set Name'}</span>
           </button>
-          <button className="ghost" onClick={() => setVaultOpen(true)}>Tokens</button>
+          <button className="ghost tokens-btn" onClick={() => setVaultOpen(true)}>Tokens</button>
           <button
             className="ghost settings-btn"
             onClick={() => setSettingsOpen(true)}
@@ -1258,7 +1258,8 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
             onClick={() => setHistoryOpen(true)}
             title="Task History & Past Sessions"
           >
-            📜 History
+            <span className="history-btn-icon">📜</span>
+            <span className="history-btn-text">History</span>
             {taskHistory.length > 0 && <span className="history-badge-count">{taskHistory.length}</span>}
           </button>
           <button className="ghost app-btn" onClick={() => setAppModalOpen(true)} title="Use as app on Windows, Mac & Phone">
@@ -1286,7 +1287,7 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
       />
 
       <div
-        className={`shell pane-${pane} ${leftOpen ? '' : 'hide-left'} ${rightOpen ? '' : 'hide-right'} ${isResizing ? 'resizing' : ''}`}
+        className={`shell pane-${pane} mode-${mode} ${leftOpen ? '' : 'hide-left'} ${rightOpen ? '' : 'hide-right'} ${isResizing ? 'resizing' : ''}`}
         style={{
           '--left-w': `${leftWidth}px`,
           '--right-w': `${rightWidth}px`
@@ -1404,7 +1405,7 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                     title="Start fresh conversation"
                   >
                     <span>+</span>
-                    <span>New Chat</span>
+                    <span className="chat-btn-text">New Chat</span>
                   </button>
 
                   <button
@@ -1414,7 +1415,7 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                     title={isTempChat ? "Temporary chat is ON (Messages are not saved to history)" : "Start a temporary chat (Won't be saved in history)"}
                   >
                     <span>{isTempChat ? '🕶️' : '🔒'}</span>
-                    <span>{isTempChat ? 'Temp Chat ON' : 'Temporary Chat'}</span>
+                    <span className="temp-btn-text">{isTempChat ? 'Temp Chat ON' : 'Temporary Chat'}</span>
                     {isTempChat && <span className="temp-dot" />}
                   </button>
 
@@ -1427,37 +1428,41 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
                 <div className="chat-mode-actions">
                   <button
                     type="button"
-                    className="ghost tiny"
+                    className="ghost tiny cm-action-btn cm-history-btn"
                     onClick={() => setHistoryOpen(true)}
                     title="Open Task & Chat History"
                   >
-                    📜 History
+                    <span>📜</span>
+                    <span className="cm-btn-text">History</span>
                   </button>
                   <button
                     type="button"
-                    className="ghost tiny"
+                    className="ghost tiny cm-action-btn cm-export-btn"
                     onClick={() => exportChatSession('markdown')}
                     title="Export conversation as Markdown"
                     disabled={!messages.length}
                   >
-                    📥 Export .md
+                    <span>📥</span>
+                    <span className="cm-btn-text">.md</span>
                   </button>
                   <button
                     type="button"
-                    className="ghost tiny"
+                    className="ghost tiny cm-action-btn cm-export-json-btn"
                     onClick={() => exportChatSession('json')}
                     title="Export conversation as JSON"
                     disabled={!messages.length}
                   >
-                    📥 Export .json
+                    <span>📥</span>
+                    <span className="cm-btn-text">.json</span>
                   </button>
                   <button
                     type="button"
-                    className="ghost tiny"
+                    className="ghost tiny cm-action-btn cm-settings-btn"
                     onClick={() => setSettingsOpen(true)}
                     title="Chat & Model Settings"
                   >
-                    ⚙️ Settings
+                    <span>⚙️</span>
+                    <span className="cm-btn-text">Settings</span>
                   </button>
                 </div>
               </div>
@@ -2676,8 +2681,11 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
       {/* Mobile Bottom Navigation Dock */}
       <nav className="dock" aria-label="Mobile Navigation">
         <button
-          className={`dock-btn ${pane === 'files' ? 'on' : ''}`}
-          onClick={() => setPane('files')}
+          className={`dock-btn ${pane === 'files' && mode !== 'chat' ? 'on' : ''}`}
+          onClick={() => {
+            if (mode === 'chat') setMode('editor')
+            setPane('files')
+          }}
           aria-label="Files"
         >
           <span className="dock-ico">📂</span>
@@ -2685,8 +2693,11 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
           {workspace.root && <span className="dock-dot" />}
         </button>
         <button
-          className={`dock-btn ${pane === 'editor' ? 'on' : ''}`}
-          onClick={() => setPane('editor')}
+          className={`dock-btn ${pane === 'editor' && mode !== 'chat' ? 'on' : ''}`}
+          onClick={() => {
+            if (mode === 'chat') setMode('editor')
+            setPane('editor')
+          }}
           aria-label="Editor"
         >
           <span className="dock-ico">📝</span>
@@ -2694,8 +2705,15 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
           {tabs.length > 0 && <span className="dock-badge">{tabs.length}</span>}
         </button>
         <button
-          className={`dock-btn ${pane === 'chat' ? 'on' : ''}`}
-          onClick={openChat}
+          className={`dock-btn ${mode === 'chat' || pane === 'chat' ? 'on' : ''}`}
+          onClick={() => {
+            if (mode === 'chat') {
+              setPane('editor')
+            } else {
+              setMode('chat')
+              setPane('editor')
+            }
+          }}
           aria-label="AI Chat"
         >
           <span className="dock-ico">✨</span>
