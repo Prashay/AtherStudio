@@ -3887,6 +3887,7 @@ body.resizing-col * {
     align-items: flex-end !important;
     place-items: end center !important;
     padding: 0 !important;
+    z-index: 120 !important;
   }
   .sheet-handle {
     display: block !important;
@@ -3899,27 +3900,59 @@ body.resizing-col * {
   .modal, .vault, .modal.app-modal, .apple-welcome-card {
     width: 100% !important;
     max-width: 100% !important;
-    max-height: 88dvh !important;
+    max-height: 85dvh !important;
     border-radius: 22px 22px 0 0 !important;
     margin: auto 0 0 0 !important;
-    padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px)) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.75) !important;
+    box-sizing: border-box !important;
   }
   .apple-welcome-card {
     animation: sheet-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    padding: 16px 18px calc(28px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .apple-badge {
+    margin-bottom: 10px !important;
+    font-size: 10.5px !important;
+    padding: 3px 10px !important;
+  }
+  .welcome-orb-wrap {
+    transform: scale(0.72) !important;
+    margin: -16px auto -10px auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
   .apple-welcome-content h3 {
-    font-size: 20px;
+    font-size: 19px !important;
+    margin-bottom: 4px !important;
   }
   .apple-welcome-content p {
-    font-size: 13px;
-    margin-bottom: 16px;
+    font-size: 12.5px !important;
+    margin-bottom: 14px !important;
+    line-height: 1.45 !important;
   }
   .apple-name-input {
     font-size: 16px !important;
-    padding: 12px 36px 12px 38px;
+    padding: 11px 36px 11px 38px !important;
+  }
+  .apple-input-hint {
+    margin-bottom: 12px !important;
+    font-size: 10.5px !important;
+  }
+  .apple-modal-actions {
+    gap: 8px !important;
+    padding-bottom: 6px !important;
+  }
+  .apple-skip-btn {
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+  }
+  .apple-continue-btn {
+    padding: 10px 16px !important;
+    font-size: 13px !important;
   }
   .qr-container {
     padding: 12px;

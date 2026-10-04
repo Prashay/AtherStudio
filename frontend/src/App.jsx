@@ -324,7 +324,13 @@ async function parseSse(response, onEvent) {
 }
 
 export default function App() {
-  const [mode, setMode] = useState('agent')
+  const [mode, setMode] = useState(() => {
+    try {
+      const param = new URLSearchParams(window.location.search).get('mode')
+      if (param && ['agent', 'chat', 'editor'].includes(param)) return param
+    } catch {}
+    return 'agent'
+  })
   const [tree, setTree] = useState(null)
   const [openDirs, setOpenDirs] = useState(() => new Set(['']))
   const [tabs, setTabs] = useState([])
@@ -3011,13 +3017,15 @@ ${lastUserPrompt ? `> ${lastUserPrompt}` : '*(No prior prompt in thread)*'}
             <div className="sheet-handle" />
             <div className="apple-badge">
               <span className="apple-badge-sparkle">✦</span>
-              <span>Arther Intelligence &amp; Studio</span>
+              <span>Aether AI Studio</span>
             </div>
 
-            <AppleAiOrb size={145} />
+            <div className="welcome-orb-wrap">
+              <AppleAiOrb size={130} />
+            </div>
 
             <div className="apple-welcome-content">
-              <h3>{userName ? `Hi ${userName}` : 'Welcome to Arther Studio'}</h3>
+              <h3>{userName ? `Hi, ${userName}` : 'Welcome to Aether Studio'}</h3>
               <p>
                 Experience next-generation intelligent coding. Tell us what to call you, or jump right in.
               </p>
